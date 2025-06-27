@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import sklearn
-import skimage as ski
 import seaborn as sn
 import glob
 import copy
@@ -207,7 +206,7 @@ device = "cuda"
 torch.backends.cuda.matmul.allow_tf32 = True
 
 
-class CNNModel(Model):
+class WrapperNNModel(Model):
     def __init__(self, prefix="cnn"):
         self.model = StockNN().to(device)
         self.prefix = prefix
@@ -359,7 +358,6 @@ def main(instr):
     )
     logger.info(f"holdout split, train {len(t_y)}, val {len(v_y)}")
 
-    # model = CNNModel("cnn_val")
     # model = SVMModel()
     model = LogModel()
     model.fit(t_x, t_y, v_x, v_y)
