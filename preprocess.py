@@ -12,13 +12,14 @@ def loadDataSet():
     df.rename(columns=lambda c: int(c), inplace=True)
     return df
 
-def preprocessTA(price_df: pd.DataFrame, stock: int):
+def getX(price_df: pd.DataFrame, stock: int):
     stock_df = price_df[stock]
+    stock_df.index = list(range(stock_df.shape[0]))
     days = stock_df.shape[0]
     rsi = RSIIndicator(close=stock_df, window=10)
     rsi_series = rsi.rsi()
     
-    macd = MACD(close=stock_df, window_slow=10, window_fast=5, window_sign=5)
+    macd = MACD(close=stock_df, window_slow=8, window_fast=4, window_sign=3)
     macd_signal = macd.macd_signal()
 
     stoch_osc = StochasticOscillator(close=stock_df, high=stock_df, low=stock_df, window=7, smooth_window=3)
@@ -29,11 +30,54 @@ def preprocessTA(price_df: pd.DataFrame, stock: int):
 
     williamR = WilliamsRIndicator(high=stock_df, 
                                   low=stock_df, 
-                                  close=stock_df, lbp=14)
+                                  close=stock_df, lbp=10)
     williamR_vals = williamR.williams_r()
 
     # X = features of the last 7 days
-    WINDOW_FEATURES = 7
+    WINDOW_FEATURES = 5
+    # Wait until the first full window of all indicator 
+    X = []
+    # y is buy or sell
+
+
+  
+    current = {}
+    for j in range(1, WINDOW_FEATURES + 1):
+        prev = days - j
+        current[f"price_{j}"] = stock_df.iloc[prev]
+        current[f"rsi_{j}"] = rsi_series[prev]
+        current[f"macd_{j}"] = macd_signal[prev]
+        current[f"stoch_{j}"] = stoch_sign[prev]
+        current[f"roc_{j}"] = roc_vals[prev]
+        current[f"williamR_{j}"] = williamR_vals[prev]
+    X.append(current)
+
+    X_df = pd.DataFrame(X)
+    return X_df
+
+def preprocessTA(price_df: pd.DataFrame, stock: int):
+    stock_df = price_df[stock]
+    stock_df.index = list(range(stock_df.shape[0]))
+    days = stock_df.shape[0]
+    rsi = RSIIndicator(close=stock_df, window=10)
+    rsi_series = rsi.rsi()
+    
+    macd = MACD(close=stock_df, window_slow=8, window_fast=4, window_sign=3)
+    macd_signal = macd.macd_signal()
+
+    stoch_osc = StochasticOscillator(close=stock_df, high=stock_df, low=stock_df, window=7, smooth_window=3)
+    stoch_sign = stoch_osc.stoch_signal()
+
+    roc = ROCIndicator(close=stock_df, window=3)
+    roc_vals = roc.roc()
+
+    williamR = WilliamsRIndicator(high=stock_df, 
+                                  low=stock_df, 
+                                  close=stock_df, lbp=10)
+    williamR_vals = williamR.williams_r()
+
+    # X = features of the last 7 days
+    WINDOW_FEATURES = 5
     # Wait until the first full window of all indicator 
     START = 30
     X = []
@@ -41,6 +85,8 @@ def preprocessTA(price_df: pd.DataFrame, stock: int):
     AHEAD = 5
     y = []
 
+    # print(stock_df)
+    # print(rsi_series)
     valid_days = range(START, days - AHEAD)
     for i in valid_days:
         current = {}

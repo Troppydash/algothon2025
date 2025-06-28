@@ -64,7 +64,7 @@ def calcPL(prcHist, startDay, endDay):
 
 
 
-(meanpl, ret, plstd, sharpe, dvol) = calcPL(prcAll, 100, 700)
+(meanpl, ret, plstd, sharpe, dvol) = calcPL(prcAll, 500, 750)
 score = meanpl - 0.1*plstd
 print ("=====")
 print ("mean(PL): %.1lf" % meanpl)
