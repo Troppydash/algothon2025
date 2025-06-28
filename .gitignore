@@ -4,3 +4,4 @@ __pycache__
 *.ipynb
 *.png
 !pair.ipynb
+!single.ipynb

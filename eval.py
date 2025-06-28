@@ -2,7 +2,7 @@
 
 import numpy as np
 import pandas as pd
-from main import getMyPosition as getPosition
+from main_ta import getMyPosition as getPosition
 
 nInst = 0
 nt = 0
