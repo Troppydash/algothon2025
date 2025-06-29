@@ -23,14 +23,16 @@ def getMyPosition(prices):
     for i in range(50):
         limit[i] = 10000 // df[i].values[-1]
 
-    train_df = df.iloc[-200:]
+    train_df = df.iloc[-300:]
 
     for stock in range(50):
         # print(stock)
         X_df, y_df = preprocessTA(train_df, stock)
         # print(stock)
-        X_train = X_df.iloc[:-1]
-        y_train = y_df.iloc[:-1]
+        X_train = X_df
+        y_train = y_df
+        # print(X_train)
+        # print(y_train)
         randomForest.fit(X_train, y_train)
         X_pred = getX(train_df, i)
         prob = randomForest.predict_proba(X_pred)[0]
