@@ -8,7 +8,7 @@ currentPos = np.zeros(50)
 
 entered = [False] * 50
 
-randomForest = RandomForestClassifier(n_estimators=50, max_depth=7)
+randomForest = RandomForestClassifier(n_estimators=80, max_depth=7)
 SKIP = 5
 LABELS = [-1, 0, 1]
 
@@ -24,6 +24,7 @@ def getMyPosition(prices):
         limit[i] = 10000 // df[i].values[-1]
 
     train_df = df.iloc[-200:]
+
     for stock in range(50):
         # print(stock)
         X_df, y_df = preprocessTA(train_df, stock)
@@ -35,12 +36,10 @@ def getMyPosition(prices):
         prob = randomForest.predict_proba(X_pred)[0]
         y_pred = LABELS[np.argmax(prob)]
         predict_prob = max(prob)
-        if predict_prob < 0.45:
-            y_pred = 0
         if y_pred == 1:
-            currentPos[stock] = min(currentPos[stock] + limit[stock]//5, limit[stock])
+            currentPos[stock] = min(limit[stock]//2 * predict_prob, limit[stock])
         elif y_pred == -1:
-            currentPos[stock] = max(currentPos[stock] - limit[stock]//5, -limit[stock])
+            currentPos[stock] = max(-limit[stock]//2 * predict_prob, -limit[stock])
     end = time()
     print(f"Take: {end - start}s")
     return np.copy(currentPos)

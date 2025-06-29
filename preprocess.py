@@ -13,7 +13,7 @@ def loadDataSet():
     return df
 
 def getX(price_df: pd.DataFrame, stock: int):
-    stock_df = price_df[stock]
+    stock_df = price_df[stock][-50:]
     stock_df.index = list(range(stock_df.shape[0]))
     days = stock_df.shape[0]
     rsi = RSIIndicator(close=stock_df, window=10)
@@ -39,8 +39,6 @@ def getX(price_df: pd.DataFrame, stock: int):
     X = []
     # y is buy or sell
 
-
-  
     current = {}
     for j in range(1, WINDOW_FEATURES + 1):
         prev = days - j
