@@ -6,6 +6,7 @@ from ta.trend import MACD
 
 COMMISSION_RATE = 0.0010
 AHEAD = 5
+WINDOW_FEATURES = 20
 
 def loadDataSet():
     df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)
@@ -13,10 +14,8 @@ def loadDataSet():
     df.rename(columns=lambda c: int(c), inplace=True)
     return df
 
-def extract_features(stock_df: pd.DataFrame, today: int):
+def extract_features(stock_df: pd.DataFrame):
     # X = features of the last few days
-    WINDOW_FEATURES = 10
-    
     rsi = RSIIndicator(close=stock_df, window=10)
     rsi_series = rsi.rsi()
     
@@ -34,6 +33,10 @@ def extract_features(stock_df: pd.DataFrame, today: int):
                                   close=stock_df, lbp=10)
     williamR_vals = williamR.williams_r()
 
+    return rsi_series, macd_signal, stoch_sign, roc_vals, williamR_vals
+
+def get_X_current(stock_df: pd.DataFrame, extracted_features: tuple, today: int):
+    rsi_series, macd_signal, stoch_sign, roc_vals, williamR_vals = extracted_features
     current = {}
     for j in range(1, WINDOW_FEATURES + 1):
         prev = today - j
@@ -53,7 +56,8 @@ def getX(price_df: pd.DataFrame, stock: int):
     # Wait until the first full window of all indicator 
     X = []
     # y is buy or sell
-    current = extract_features(stock_df=stock_df, today=days)
+    extracted_features = extract_features(stock_df=stock_df)
+    current = get_X_current(stock_df, extracted_features, days)
     X.append(current)
 
     X_df = pd.DataFrame(X)
@@ -67,6 +71,7 @@ def preprocessTA(price_df: pd.DataFrame, stock: int, start=30):
     # X = features of the last few days
     # Wait until the first full window of all indicator 
     X = []
+    extracted_features = extract_features(stock_df=stock_df)
     # y is buy or sell
     y = []
 
@@ -74,7 +79,7 @@ def preprocessTA(price_df: pd.DataFrame, stock: int, start=30):
     # print(rsi_series)
     valid_days = range(start, days - AHEAD)
     for i in valid_days:
-        current = extract_features(stock_df=stock_df, today=i)
+        current = get_X_current(stock_df, extracted_features, i)
         X.append(current)
         return_pct = (stock_df[i+AHEAD] - stock_df[i]) / stock_df[i]
         if abs(return_pct) < COMMISSION_RATE:
