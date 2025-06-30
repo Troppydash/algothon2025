@@ -16,7 +16,7 @@ def getMyPosition(prices):
     global currentPos, entered, first
     start = time()
     curDay = len(prices[0])
-    if curDay % (AHEAD//2) != 0:
+    if curDay % AHEAD != 0:
         return np.copy(currentPos)
 
     df = pd.DataFrame(prices.T, columns=np.arange(50))
