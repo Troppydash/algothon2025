@@ -8,7 +8,7 @@ currentPos = np.zeros(50)
 
 entered = [False] * 50
 
-models = [RandomForestClassifier(n_estimators=160, max_depth=7) for i in range(50)]
+models = [RandomForestClassifier(n_estimators=100, max_depth=6) for i in range(50)]
 LABELS = [-1, 0, 1]
 
 def getMyPosition(prices):
@@ -26,7 +26,7 @@ def getMyPosition(prices):
     train_df = df.iloc[-300:]
 
     for stock in range(50):
-        if curDay % 50 == 0:
+        if curDay % 10 == 0:
             # print(stock)
             X_df, y_df = preprocessTA(train_df, stock)
             # print(stock)

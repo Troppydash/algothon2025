@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 nInst = 0
 nt = 0
-commRate = 0.0010
+commRate = 0.0005
 dlrPosLimit = 10000
 
 
@@ -43,7 +43,7 @@ def calcPL(prcHist):
     value = 0
     todayPLL = []
     (_, nt) = prcHist.shape
-    for t in range(500, 570):
+    for t in range(500, 750):
         prcHistSoFar = prcHist[:, :t]
         newPosOrig = getMyPosition(prcHistSoFar)
         curPrices = prcHistSoFar[:, -1]

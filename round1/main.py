@@ -3,7 +3,7 @@ import numpy as np
 from ta.momentum import RSIIndicator, StochasticOscillator, ROCIndicator, WilliamsRIndicator
 from ta.trend import MACD
 
-COMMISSION_RATE = 0.0010
+COMMISSION_RATE = 0.0005
 AHEAD = 5
 WINDOW_FEATURES = 20
 
