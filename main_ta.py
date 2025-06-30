@@ -2,20 +2,20 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from time import time
-from preprocess import preprocessTA, getX
+from preprocess import preprocessTA, getX, AHEAD
 
 currentPos = np.zeros(50)
 
 entered = [False] * 50
 
-randomForest = RandomForestClassifier(n_estimators=80, max_depth=7)
-SKIP = 5
+models = [RandomForestClassifier(n_estimators=160, max_depth=7) for i in range(50)]
 LABELS = [-1, 0, 1]
 
 def getMyPosition(prices):
     global currentPos, entered
     start = time()
-    if len(prices[0]) % SKIP != 0:
+    curDay = len(prices[0])
+    if curDay % AHEAD != 0:
         return np.copy(currentPos)
 
     df = pd.DataFrame(prices.T, columns=np.arange(50))
@@ -26,16 +26,17 @@ def getMyPosition(prices):
     train_df = df.iloc[-300:]
 
     for stock in range(50):
-        # print(stock)
-        X_df, y_df = preprocessTA(train_df, stock)
-        # print(stock)
-        X_train = X_df
-        y_train = y_df
-        # print(X_train)
-        # print(y_train)
-        randomForest.fit(X_train, y_train)
+        if curDay % 50 == 0:
+            # print(stock)
+            X_df, y_df = preprocessTA(train_df, stock)
+            # print(stock)
+            X_train = X_df
+            y_train = y_df
+            # print(X_train)
+            # print(y_train)
+            models[stock].fit(X_train, y_train)
         X_pred = getX(train_df, i)
-        prob = randomForest.predict_proba(X_pred)[0]
+        prob = models[stock].predict_proba(X_pred)[0]
         y_pred = LABELS[np.argmax(prob)]
         predict_prob = max(prob)
         if y_pred == 1:
