@@ -4,7 +4,7 @@ from ta.momentum import RSIIndicator, StochasticOscillator, ROCIndicator, Willia
 from ta.trend import MACD
 
 COMMISSION_RATE = 0.0005
-AHEAD = 5
+AHEAD = 10
 WINDOW_FEATURES = 20
 
 def loadDataSet():
