@@ -13,6 +13,7 @@ import sklearn.dummy
 import ta.momentum
 import ta.volatility
 import torch
+from sklearn.dummy import DummyClassifier
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.neighbors import KNeighborsClassifier, NearestCentroid
 from sklearn.decomposition import PCA
@@ -31,7 +32,7 @@ from sklearn.model_selection import (
     train_test_split,
     KFold,
     StratifiedKFold,
-    GridSearchCV,
+    GridSearchCV, cross_val_score,
 )
 from sklearn.metrics import confusion_matrix
 from sklearn.pipeline import Pipeline
@@ -55,6 +56,13 @@ class Loader:
         pass
 
 
+def to_binary(value, thres):
+    if abs(value) < thres:
+        return 0
+
+    return 1 if value > 0 else -1
+
+
 class TrainLoader(Loader):
     def load(self, instr):
         df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)
@@ -65,92 +73,89 @@ class TrainLoader(Loader):
         xs = []
         ys = []
 
-        pcf = df.pct_change()
-
         # use previous 100 days
-        for day in range(51, 750 - 1):
-            prev = pcf[instr][day - 50 : day].values
-            prev_values = df[instr][day - 50 : day].values
+        for day in range(51, 700 - 1):
+            # prev = pcf[instr][day - 50:day].values
+            prev_values = df[instr][day - 50:day].values
+
+            closes = pd.Series(prev_values)
 
             # compute features
             features = []
-            macd = ta.trend.MACD(pd.Series(prev_values))
-            # diff = macd.macd_diff().values[-1]
-            # if diff > 0:
+
+            data = pd.DataFrame({"close": closes, "volume": [10000] * len(closes)})
+            ta.add_trend_ta(data, "close", "close", "close")
+            ta.add_volatility_ta(data, "close", "close", "close")
+            ta.add_momentum_ta(data, "close", "close", "close", "volume")
+            ta.add_others_ta(data, "close")
+            data = data.fillna(0)
+            data = data.drop(data.columns[47], axis=1)
+            lrow = data.iloc[-1].values.flatten().tolist()
+
+            features += lrow
+            features += list(closes.pct_change().values[-30:])
+            #
+            # macd = ta.trend.MACD(closes)
+            # diff = macd.macd().values[-10:] - macd.macd_signal().values[-10:]
+            # features += list(diff)
+            #
+            # rsi = ta.momentum.rsi(closes).values[-10:]
+            # features += [*list(rsi)]
+            #
+            # bb = ta.volatility.bollinger_hband_indicator(closes).values[
+            #     -10:
+            # ]
+            # features += list(bb)
+            # bb = ta.volatility.bollinger_lband_indicator(closes).values[
+            #     -10:
+            # ]
+            # features += list(bb)
+            #
+            # r = ta.momentum.williams_r(closes, closes, closes).values[-10:]
+            # features += list(r)
+            #
+            # osi = ta.momentum.stoch(closes, closes, closes).values[-10:]
+            # features += list(osi)
+            #
+            # ma20 = df[instr][day - 50: day].rolling(20).mean().values[-1]
+            # ma30 = df[instr][day - 50: day].rolling(30).mean().values[-1]
+            # ma40 = df[instr][day - 50: day].rolling(40).mean().values[-1]
+            # ma10 = df[instr][day - 50: day].rolling(10).mean().values[-1]
+            # # features += [ma10, ma20, ma30, ma40]
+            # if ma20 > ma30:
+            #     features += [1]
+            # else:
+            #     features += [0]
+            #
+            # if ma10 > ma30:
+            #     features += [1]
+            # else:
+            #     features += [0]
+            #
+            # if ma10 > ma20:
+            #     features += [1]
+            # else:
+            #     features += [0]
+            #
+            # if ma10 > ma40:
+            #     features += [1]
+            # else:
+            #     features += [0]
+            #
+            # if ma20 > ma40:
+            #     features += [1]
+            # else:
+            #     features += [0]
+            #
+            # if ma30 > ma40:
             #     features += [1]
             # else:
             #     features += [0]
 
-            rsi = ta.momentum.rsi(pd.Series(prev_values)).values[-1]
-            if rsi > 70:
-                features += [0, 0, 0, 1, 0]
-            elif rsi > 60:
-                features += [0, 0, 1, 0, 0]
-            elif rsi < 30:
-                features += [0, 1, 0, 0, 0]
-            elif rsi < 40:
-                features += [1, 0, 0, 0, 0]
-            else:
-                features += [0, 0, 0, 0, 1]
+            # # other stocks
 
-
-            bb = ta.volatility.bollinger_hband_indicator(pd.Series(prev_values)).values[
-                -1
-            ]
-            features += [bb]
-            bb = ta.volatility.bollinger_lband_indicator(pd.Series(prev_values)).values[
-                -1
-            ]
-            features += [bb]
-
-            vol = np.std(prev)
-            features += [vol]
-
-            ma20 = df[instr][day - 50 : day].rolling(20).mean().values[-1]
-            ma30 = df[instr][day - 50 : day].rolling(30).mean().values[-1]
-            ma40 = df[instr][day - 50 : day].rolling(40).mean().values[-1]
-            ma10 = df[instr][day - 50 : day].rolling(10).mean().values[-1]
-            if ma20 > ma30:
-                features += [1]
-            else:
-                features += [0]
-
-            if ma10 > ma30:
-                features += [1]
-            else:
-                features += [0]
-
-            if ma10 > ma20:
-                features += [1]
-            else:
-                features += [0]
-
-            if ma10 > ma40:
-                features += [1]
-            else:
-                features += [0]
-
-            if ma20 > ma40:
-                features += [1]
-            else:
-                features += [0]
-            
-            if ma30 > ma40:
-                features += [1]
-            else:
-                features += [0]
-
-
-            # other stocks
-            others = []
-            for other in range(50):
-                if other == instr:
-                    continue
-
-                others += [int(p > 0) for p in list(pcf[other][day-40:day].values)]
-
-            y = int(pcf[instr][day] > 0)
-            xs.append([int(p > 0) for p in list(prev)[-40:]] + features + others)
+            y = int(1 if df[instr][day+5] > df[instr][day] else 0)
+            xs.append(features)
             ys.append(y)
 
         return xs, ys
@@ -278,7 +283,7 @@ class WrapperNNModel(Model):
             # test_loss *= 100
             # baseline_loss *= 100
             print(
-                f"train loss {train_loss / train_epochs:.5}, test loss {test_loss / test_epochs:.5}, test acc {correct/test_values:.5}, baseline loss {baseline_loss / test_epochs:.5}"
+                f"train loss {train_loss / train_epochs:.5}, test loss {test_loss / test_epochs:.5}, test acc {correct / test_values:.5}, baseline loss {baseline_loss / test_epochs:.5}"
             )
 
             xs.append(epoch)
@@ -312,8 +317,6 @@ class WrapperNNModel(Model):
         return np.array(predictions)
 
 
-
-
 class SVMModel(Model):
     def __init__(self):
         self.clf = GridSearchCV(Pipeline([
@@ -328,14 +331,33 @@ class SVMModel(Model):
 
     def predict(self, X):
         return self.clf.predict(X)
-    
+
 
 class LogModel(Model):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.clf = Pipeline([
             ('chi2', SelectKBest(k=20)),
             ('scaler', StandardScaler()),
-            ('svc', LogisticRegression())
+            ('svc', LogisticRegression(max_iter=100000))
+        ])
+
+    def fit(self, X, y, *args):
+        self.clf.fit(X, y)
+
+    def predict(self, X):
+        return self.clf.predict(X)
+
+    def score(self, X, y):
+        return self.clf.score(X, y)
+
+    def get_params(self, deep):
+        return self.clf.get_params(deep)
+
+
+class RFModel(Model):
+    def __init__(self):
+        self.clf = Pipeline([
+            ('svc', RandomForestClassifier(n_estimators=100, max_depth=10, n_jobs=8))
         ])
 
     def fit(self, X, y, *args):
@@ -345,28 +367,61 @@ class LogModel(Model):
         return self.clf.predict(X)
 
 
+class BaselineModel(Model):
+    def __init__(self, *args, **kwargs):
+        self.clf = Pipeline([
+            ('svc', DummyClassifier())
+        ])
+
+    def fit(self, X, y, *args):
+        self.clf.fit(X, y)
+
+    def predict(self, X):
+        return self.clf.predict(X)
+
+    def score(self, X, y):
+        return self.clf.score(X, y)
+
+    def get_params(self, deep):
+        return self.clf.get_params(deep)
 
 
 def main(instr):
     train_loader = TrainLoader()
 
-    logger.info("loading train dataset")
     x, y = train_loader.load(instr)
-
+    x = x[:500]
+    y = y[:500]
     t_x, v_x, t_y, v_y = train_test_split(
-        x, y, test_size=2 / 10, random_state=random_state, shuffle=True
+        x, y, test_size=2 / 10, random_state=random_state, shuffle=False
     )
-    logger.info(f"holdout split, train {len(t_y)}, val {len(v_y)}")
 
-    # model = SVMModel()
-    model = LogModel()
-    model.fit(t_x, t_y, v_x, v_y)
+    base = BaselineModel()
+    model = RFModel()
+    model.fit(t_x, t_y)
+    base.fit(t_x, t_y)
 
     pred = model.predict(v_x)
-    mse = accuracy_score(v_y, pred)
-    logger.info(f"Holdout accuracy {mse:.4}")
+    model_acc = accuracy_score(v_y, pred)
 
 
+    pred = base.predict(v_x)
+    base_acc = accuracy_score(v_y, pred)
+    print(f"Accuracy {model_acc:0.4}, Baseline {base_acc:0.4}, Diff {model_acc - base_acc:0.4}")
+
+
+    """
+        model_acc = float(np.mean(cross_val_score(model.clf, x, y, cv=2)))
+    base_acc = float(np.mean(cross_val_score(base.clf, x, y, cv=2)))
+
+    """
+
+    return model_acc - base_acc
+
+
+diff = []
 for i in range(50):
     print('instr', i)
-    main(i)
+    diff += [main(i)]
+
+print(f'average diff {sum(diff) / 50:.2f}, max diff {max(diff):.2f}')

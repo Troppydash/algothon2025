@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from ta.momentum import RSIIndicator, StochasticOscillator, ROCIndicator, WilliamsRIndicator
 from ta.trend import MACD
+import copy
 
 COMMISSION_RATE = 0.0010
 AHEAD = 5
@@ -13,7 +14,15 @@ def loadDataSet():
     df.rename(columns=lambda c: int(c), inplace=True)
     return df
 
-def extract_features(stock_df: pd.DataFrame, today: int):
+cached = {}
+
+def extract_features(stock_df: pd.DataFrame, today: int, ticker: int):
+    global cached
+
+    if (today, ticker) in cached:
+        return copy.deepcopy(cached[today, ticker])
+
+
     # X = features of the last few days
     WINDOW_FEATURES = 10
     
@@ -43,6 +52,8 @@ def extract_features(stock_df: pd.DataFrame, today: int):
         current[f"stoch_{j}"] = stoch_sign[prev]
         current[f"roc_{j}"] = roc_vals[prev]
         current[f"williamR_{j}"] = williamR_vals[prev]
+
+    cached[today, ticker] = current
     return current
 
 def getX(price_df: pd.DataFrame, stock: int):
@@ -53,7 +64,7 @@ def getX(price_df: pd.DataFrame, stock: int):
     # Wait until the first full window of all indicator 
     X = []
     # y is buy or sell
-    current = extract_features(stock_df=stock_df, today=days)
+    current = extract_features(stock_df=stock_df, today=days, ticker=stock)
     X.append(current)
 
     X_df = pd.DataFrame(X)
@@ -74,7 +85,7 @@ def preprocessTA(price_df: pd.DataFrame, stock: int, start=30):
     # print(rsi_series)
     valid_days = range(start, days - AHEAD)
     for i in valid_days:
-        current = extract_features(stock_df=stock_df, today=i)
+        current = extract_features(stock_df=stock_df, today=i, ticker=stock)
         X.append(current)
         return_pct = (stock_df[i+AHEAD] - stock_df[i]) / stock_df[i]
         if abs(return_pct) < COMMISSION_RATE:
