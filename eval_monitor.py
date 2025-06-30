@@ -20,8 +20,7 @@ pricesFile = "./prices.txt"
 prcAll = loadPrices(pricesFile)
 print("Loaded %d instruments for %d days" % (nInst, nt))
 
-start = np.random.randint(1, 250)
-start = 250
+start = 500
 ticker = 32
 
 values = []
@@ -43,7 +42,7 @@ def calcPL(prcHist):
     value = 0
     todayPLL = []
     (_, nt) = prcHist.shape
-    for t in range(500, 750):
+    for t in range(start, start + 71):
         prcHistSoFar = prcHist[:, :t]
         newPosOrig = getMyPosition(prcHistSoFar)
         curPrices = prcHistSoFar[:, -1]

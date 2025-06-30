@@ -8,11 +8,12 @@ currentPos = np.zeros(50)
 
 entered = [False] * 50
 
-models = [RandomForestClassifier(n_estimators=100, max_depth=6) for i in range(50)]
+first = True
+models = [RandomForestClassifier(n_estimators=100, max_depth=6, random_state=2605) for i in range(50)]
 LABELS = [-1, 0, 1]
 
 def getMyPosition(prices):
-    global currentPos, entered
+    global currentPos, entered, first
     start = time()
     curDay = len(prices[0])
     if curDay % AHEAD != 0:
@@ -26,7 +27,7 @@ def getMyPosition(prices):
     train_df = df.iloc[-300:]
 
     for stock in range(50):
-        if curDay % 10 == 0:
+        if first or (curDay % 15 == 0):
             # print(stock)
             X_df, y_df = preprocessTA(train_df, stock)
             # print(stock)
@@ -43,6 +44,8 @@ def getMyPosition(prices):
             currentPos[stock] = min(limit[stock]//2 * predict_prob, limit[stock])
         elif y_pred == -1:
             currentPos[stock] = max(-limit[stock]//2 * predict_prob, -limit[stock])
+    
+    first = False
     end = time()
     print(f"Take: {end - start}s")
     return np.copy(currentPos)
