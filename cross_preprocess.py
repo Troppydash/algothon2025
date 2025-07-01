@@ -19,7 +19,7 @@ def extract_features(stock_df: pd.DataFrame):
     rsi_series = rsi.rsi()
     
     macd = MACD(close=stock_df, window_slow=26, window_fast=12, window_sign=5)
-    macd_signal = macd.macd_diff()
+    macd_signal = macd.macd_signal()
 
     stoch_osc = StochasticOscillator(close=stock_df, high=stock_df, low=stock_df, window=12, smooth_window=3)
     stoch_sign = stoch_osc.stoch_signal()
@@ -33,6 +33,9 @@ def extract_features(stock_df: pd.DataFrame):
     williamR_vals = williamR.williams_r()
 
     return rsi_series, macd_signal, stoch_sign, roc_vals, williamR_vals
+
+def extract_all(price_df: pd.DataFrame):
+    rsi = []
 
 def get_X_current(stock_df: pd.DataFrame, extracted_features: tuple, today: int):
     rsi_series, macd_signal, stoch_sign, roc_vals, williamR_vals = extracted_features
