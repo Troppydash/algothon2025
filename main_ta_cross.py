@@ -2,19 +2,20 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from time import time
-from preprocess import preprocessTA, getX, AHEAD
+from cross_preprocess import preprocessTA, getX, AHEAD, extract_all
 
 currentPos = np.zeros(50)
 
 entered = [False] * 50
 
 first = True
-models = [RandomForestClassifier(n_estimators=150, max_depth=3, random_state=2605) for i in range(50)]
+models = [RandomForestClassifier(n_estimators=150, max_depth=5, random_state=2605) for i in range(50)]
 # Maybe try XGBoost ... This perform worse than 
 # models = [GradientBoostingClassifier(n_estimators=100, max_depth=5, learning_rate=0.01,  random_state=2605) for i in range(50)]
 
 # Bad idea: Too fragile on different time series
 good_stocks = list(range(50))
+# This list kinda works now?
 # good_stocks = [6, 9, 11, 22, 24, 46]
 # 19, 20, 28, 31
 LABELS = [-1, 0, 1]
@@ -32,19 +33,18 @@ def getMyPosition(prices):
         limit[i] = 10000 // df[i].values[-1]
 
     train_df = df.iloc[-300:]
+    extracted_features = None
+    if first or (curDay % 15 == 0):
+        extracted_features = extract_all(price_df=train_df)
 
     for stock in good_stocks:
         if first or (curDay % 15 == 0):
-            # print(stock)
-            X_df, y_df = preprocessTA(train_df, stock)
-            # print(stock)
+            X_df, y_df = preprocessTA(train_df, extracted_features=extracted_features, stock=stock, start=50)
+            
             X_train = X_df
             y_train = y_df
-            # print(X_train)
-            # print(y_train)
-            # print(X_train)
             models[stock].fit(X_train, y_train)
-        X_pred = getX(train_df, i)
+        X_pred = getX(train_df, extracted_features=extracted_features, stock=i)
         prob = models[stock].predict_proba(X_pred)[0]
         y_pred = LABELS[np.argmax(prob)]
         predict_prob = max(prob)

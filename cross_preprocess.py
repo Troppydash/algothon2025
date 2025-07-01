@@ -4,7 +4,7 @@ from ta.momentum import RSIIndicator, StochasticOscillator, ROCIndicator, Willia
 from ta.trend import MACD
 
 COMMISSION_RATE = 0.0005
-AHEAD = 5
+AHEAD = 20
 WINDOW_FEATURES = 20
 
 def loadDataSet():
@@ -35,37 +35,55 @@ def extract_features(stock_df: pd.DataFrame):
     return rsi_series, macd_signal, stoch_sign, roc_vals, williamR_vals
 
 def extract_all(price_df: pd.DataFrame):
+    price_df.index = list(range(price_df.shape[0]))
     rsi = []
+    macd = []
+    stoch = []
+    roc = []
+    williamR = []
 
-def get_X_current(stock_df: pd.DataFrame, extracted_features: tuple, today: int):
+    for i in range(50):
+        rsi_series, macd_signal, stoch_sign, roc_vals, williamR_vals = extract_features(price_df[i])
+        rsi.append(rsi_series)
+        macd.append(macd_signal)
+        stoch.append(stoch_sign)
+        roc.append(roc_vals)
+        williamR.append(williamR_vals)
+    return rsi, macd, stoch, roc, williamR
+
+cached = {}
+def get_X_current(price_df: pd.DataFrame, extracted_features: tuple, today: int):
+    if today in cached:
+        return cached[today]
     rsi_series, macd_signal, stoch_sign, roc_vals, williamR_vals = extracted_features
     current = {}
     for j in range(1, WINDOW_FEATURES + 1):
         prev = today - j
-        current[f"price_{j}"] = stock_df.iloc[prev]
-        current[f"rsi_{j}"] = rsi_series[prev]
-        current[f"macd_{j}"] = macd_signal[prev]
-        current[f"stoch_{j}"] = stoch_sign[prev]
-        current[f"roc_{j}"] = roc_vals[prev]
-        current[f"williamR_{j}"] = williamR_vals[prev]
+        # current[f"price_{j}"] = stock_df.iloc[prev]
+        for i in range(50):
+            current[f"rsi_{i}_{j}"] = rsi_series[i][prev]
+            current[f"macd_{i}_{j}"] = macd_signal[i][prev]
+            current[f"stoch_{i}_{j}"] = stoch_sign[i][prev]
+            current[f"roc_{i}_{j}"] = roc_vals[i][prev]
+            current[f"williamR_{i}_{j}"] = williamR_vals[i][prev]
+    cached[today] = current
     return current
 
-def getX(price_df: pd.DataFrame, stock: int):
-    stock_df = price_df[stock][-50:]
-    stock_df.index = list(range(stock_df.shape[0]))
-    days = stock_df.shape[0]
+def getX(price_df: pd.DataFrame, extracted_features: tuple, stock: int):
+    price_df = price_df[stock][-50:]
+    price_df.index = list(range(price_df.shape[0]))
+    days = price_df.shape[0]
 
     # Wait until the first full window of all indicator 
     X = []
     # y is buy or sell
-    extracted_features = extract_features(stock_df=stock_df)
-    current = get_X_current(stock_df, extracted_features, days)
+    current = get_X_current(price_df, extracted_features, days)
     X.append(current)
 
     X_df = pd.DataFrame(X)
     return X_df
 
-def preprocessTA(price_df: pd.DataFrame, stock: int, start=30):
+def preprocessTA(price_df: pd.DataFrame, extracted_features: tuple, stock: int, start=30):
     stock_df = price_df[stock]
     stock_df.index = list(range(stock_df.shape[0]))
     days = stock_df.shape[0]
@@ -73,7 +91,6 @@ def preprocessTA(price_df: pd.DataFrame, stock: int, start=30):
     # X = features of the last few days
     # Wait until the first full window of all indicator 
     X = []
-    extracted_features = extract_features(stock_df=stock_df)
     # y is buy or sell
     y = []
 
@@ -81,7 +98,7 @@ def preprocessTA(price_df: pd.DataFrame, stock: int, start=30):
     # print(rsi_series)
     valid_days = range(start, days - AHEAD)
     for i in valid_days:
-        current = get_X_current(stock_df, extracted_features, i)
+        current = get_X_current(price_df, extracted_features, i)
         X.append(current)
         return_pct = (stock_df[i+AHEAD] - stock_df[i]) / stock_df[i]
         if abs(return_pct) < COMMISSION_RATE:

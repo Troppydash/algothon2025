@@ -4,8 +4,8 @@ from ta.momentum import RSIIndicator, StochasticOscillator, ROCIndicator, Willia
 from ta.trend import MACD
 
 COMMISSION_RATE = 0.0005
-AHEAD = 5
-WINDOW_FEATURES = 20
+AHEAD = 30
+WINDOW_FEATURES = 30
 
 def loadDataSet():
     df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)
@@ -39,7 +39,7 @@ def get_X_current(stock_df: pd.DataFrame, extracted_features: tuple, today: int)
     current = {}
     for j in range(1, WINDOW_FEATURES + 1):
         prev = today - j
-        current[f"price_{j}"] = stock_df.iloc[prev]
+        # current[f"price_{j}"] = stock_df.iloc[prev]
         current[f"rsi_{j}"] = rsi_series[prev]
         current[f"macd_{j}"] = macd_signal[prev]
         current[f"stoch_{j}"] = stoch_sign[prev]
@@ -62,7 +62,7 @@ def getX(price_df: pd.DataFrame, stock: int):
     X_df = pd.DataFrame(X)
     return X_df
 
-def preprocessTA(price_df: pd.DataFrame, stock: int, start=30):
+def preprocessTA(price_df: pd.DataFrame, stock: int, start=50):
     stock_df = price_df[stock]
     stock_df.index = list(range(stock_df.shape[0]))
     days = stock_df.shape[0]

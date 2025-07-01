@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from main_ta import getMyPosition
+from main_ta_cross import getMyPosition
 import matplotlib.pyplot as plt
 
 nInst = 0
@@ -20,7 +20,7 @@ pricesFile = "./prices.txt"
 prcAll = loadPrices(pricesFile)
 print("Loaded %d instruments for %d days" % (nInst, nt))
 
-start = 500
+start = 400
 ticker = 32
 
 values = []
@@ -42,7 +42,7 @@ def calcPL(prcHist):
     value = 0
     todayPLL = []
     (_, nt) = prcHist.shape
-    for t in range(start, start + 71):
+    for t in range(start, start + 250):
         prcHistSoFar = prcHist[:, :t]
         newPosOrig = getMyPosition(prcHistSoFar)
         curPrices = prcHistSoFar[:, -1]

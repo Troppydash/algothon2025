@@ -95,3 +95,34 @@ The formula used will be:
 Your algorithms will be assessed against _unseen, future_ price data of the same 50 instruments within the provided simulated trading universe.
 
 We expect algorithms to have a maximum runtime of ~10min.
+
+# Trials:
+
+Preprocess (with some window tuning):
+`
+rsi = RSIIndicator(close=stock_df, window=10)
+    rsi_series = rsi.rsi()
+    
+    macd = MACD(close=stock_df, window_slow=26, window_fast=12, window_sign=5)
+    macd_signal = macd.macd_diff()
+
+    stoch_osc = StochasticOscillator(close=stock_df, high=stock_df, low=stock_df, window=12, smooth_window=3)
+    stoch_sign = stoch_osc.stoch_signal()
+
+    roc = ROCIndicator(close=stock_df, window=5)
+    roc_vals = roc.roc()
+
+    williamR = WilliamsRIndicator(high=stock_df, 
+                                  low=stock_df, 
+                                  close=stock_df, lbp=10)
+    williamR_vals = williamR.williams_r()
+`
+
+Random Forest: Can work on 500-750, but negative on 250-500 (overfit with stock selection).
+GradientBoosting: Not much improvement.
+
+Tune Window Ahead (5 seems to be most app.) and previous days data (10-20 works best). Rolling training of 200-300 works best. Retrain on every 15 days to reduce runtime (the shorter, the better).
+
+TODO: 
+1. Try all ta
+2. Try XGBoost, RNN, cross_preprocess
