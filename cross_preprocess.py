@@ -4,8 +4,8 @@ from ta.momentum import RSIIndicator, StochasticOscillator, ROCIndicator, Willia
 from ta.trend import MACD
 
 COMMISSION_RATE = 0.0005
-AHEAD = 20
-WINDOW_FEATURES = 20
+AHEAD = 15
+WINDOW_FEATURES = 15
 
 def loadDataSet():
     df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)
@@ -18,7 +18,7 @@ def extract_features(stock_df: pd.DataFrame):
     rsi = RSIIndicator(close=stock_df, window=10)
     rsi_series = rsi.rsi()
     
-    macd = MACD(close=stock_df, window_slow=26, window_fast=12, window_sign=5)
+    macd = MACD(close=stock_df, window_slow=20, window_fast=10, window_sign=5)
     macd_signal = macd.macd_signal()
 
     stoch_osc = StochasticOscillator(close=stock_df, high=stock_df, low=stock_df, window=12, smooth_window=3)
