@@ -2,14 +2,14 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from time import time
-from preprocess import preprocessTA, getX, AHEAD
+from preprocess import preprocessTA, getX, AHEAD, extract_features2, get_X_current2
 
 currentPos = np.zeros(50)
 
 entered = [False] * 50
 
 first = True
-models = [RandomForestClassifier(n_estimators=150, max_depth=3, random_state=2605) for i in range(50)]
+models = [RandomForestClassifier(n_estimators=200, max_depth=10, random_state=2605) for i in range(50)]
 # Maybe try XGBoost ... This perform worse than 
 # models = [GradientBoostingClassifier(n_estimators=100, max_depth=5, learning_rate=0.01,  random_state=2605) for i in range(50)]
 
@@ -31,12 +31,13 @@ def getMyPosition(prices):
     for i in range(50):
         limit[i] = 10000 // df[i].values[-1]
 
-    train_df = df.iloc[-300:]
+    train_df = df.iloc[-200:]
 
     for stock in good_stocks:
-        if first or (curDay % 15 == 0):
+        if first or (curDay % AHEAD == 0):
             # print(stock)
-            X_df, y_df = preprocessTA(train_df, stock)
+            X_df, y_df = preprocessTA(train_df, stock, extract_features=extract_features2, 
+                                      get_X_current=get_X_current2)
             # print(stock)
             X_train = X_df
             y_train = y_df
@@ -44,7 +45,7 @@ def getMyPosition(prices):
             # print(y_train)
             # print(X_train)
             models[stock].fit(X_train, y_train)
-        X_pred = getX(train_df, i)
+        X_pred = getX(train_df, i, extract_features=extract_features2, get_X_current=get_X_current2)
         prob = models[stock].predict_proba(X_pred)[0]
         y_pred = LABELS[np.argmax(prob)]
         predict_prob = max(prob)
@@ -52,6 +53,8 @@ def getMyPosition(prices):
             currentPos[stock] = min(limit[stock]//2 * predict_prob, limit[stock])
         elif y_pred == -1:
             currentPos[stock] = max(-limit[stock]//2 * predict_prob, -limit[stock])
+        else:
+            currentPos[stock] = 0
     
     first = False
     end = time()
