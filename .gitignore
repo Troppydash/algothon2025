@@ -5,3 +5,5 @@ __pycache__
 *.png
 !pair.ipynb
 !single.ipynb
+!lstm.ipynb
+!rnn.ipynb
