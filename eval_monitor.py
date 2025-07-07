@@ -20,7 +20,7 @@ pricesFile = "./prices.txt"
 prcAll = loadPrices(pricesFile)
 print("Loaded %d instruments for %d days" % (nInst, nt))
 
-start = 750
+start = 200
 
 values = []
 prices = []

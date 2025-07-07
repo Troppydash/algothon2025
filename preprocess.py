@@ -25,22 +25,22 @@ def getLinGrad(y: pd.Series, window: int):
 
 def extract_features3(stock_df: pd.DataFrame):
     # X = features of the last few days
-    rsi = RSIIndicator(close=stock_df, window=10)
+    rsi = RSIIndicator(close=stock_df, window=5)
     rsi_series = rsi.rsi()
 
-    rsi = RSIIndicator(close=stock_df, window=20)
+    rsi = RSIIndicator(close=stock_df, window=10)
     rsi_series2 = rsi.rsi()
 
-    rsi = RSIIndicator(close=stock_df, window=30)
+    rsi = RSIIndicator(close=stock_df, window=20)
     rsi_series3 = rsi.rsi()
     
     macd = MACD(close=stock_df, window_slow=20, window_fast=10, window_sign=5)
     macd_signal = macd.macd_diff()
 
-    macd = MACD(close=stock_df, window_slow=12, window_fast=6, window_sign=3)
+    macd = MACD(close=stock_df, window_slow=15, window_fast=5, window_sign=3)
     macd_signal2 = macd.macd_diff()
 
-    macd = MACD(close=stock_df, window_slow=30, window_fast=15, window_sign=9)
+    macd = MACD(close=stock_df, window_slow=30, window_fast=20, window_sign=9)
     macd_signal3 = macd.macd_diff()
 
     grad1 = getLinGrad(stock_df, window=5)
