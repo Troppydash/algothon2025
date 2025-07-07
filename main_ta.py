@@ -2,14 +2,16 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from time import time
-from preprocess import preprocessTA, getX, AHEAD, extract_features2, get_X_current2
+from preprocess import preprocessTA, getX, AHEAD, \
+    extract_features2, get_X_current2, extract_features3, get_X_current3
 
 currentPos = np.zeros(50)
-
+EXTRACT_FEATURES = extract_features3
+GET_X_CURRENT = get_X_current3
 entered = [False] * 50
 
 first = True
-models = [RandomForestClassifier(n_estimators=200, max_depth=10, random_state=2605) for i in range(50)]
+models = [RandomForestClassifier(n_estimators=200, max_depth=5, random_state=2605) for i in range(50)]
 # Maybe try XGBoost ... This perform worse than 
 # models = [GradientBoostingClassifier(n_estimators=100, max_depth=5, learning_rate=0.01,  random_state=2605) for i in range(50)]
 
@@ -36,8 +38,8 @@ def getMyPosition(prices):
     for stock in good_stocks:
         if first or (curDay % AHEAD == 0):
             # print(stock)
-            X_df, y_df = preprocessTA(train_df, stock, extract_features=extract_features2, 
-                                      get_X_current=get_X_current2)
+            X_df, y_df = preprocessTA(train_df, stock, extract_features=EXTRACT_FEATURES, 
+                                      get_X_current=GET_X_CURRENT)
             # print(stock)
             X_train = X_df
             y_train = y_df
@@ -45,7 +47,7 @@ def getMyPosition(prices):
             # print(y_train)
             # print(X_train)
             models[stock].fit(X_train, y_train)
-        X_pred = getX(train_df, i, extract_features=extract_features2, get_X_current=get_X_current2)
+        X_pred = getX(train_df, i, extract_features=EXTRACT_FEATURES, get_X_current=GET_X_CURRENT)
         prob = models[stock].predict_proba(X_pred)[0]
         y_pred = LABELS[np.argmax(prob)]
         predict_prob = max(prob)

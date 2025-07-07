@@ -21,7 +21,6 @@ prcAll = loadPrices(pricesFile)
 print("Loaded %d instruments for %d days" % (nInst, nt))
 
 start = 750
-ticker = 32
 
 values = []
 prices = []
@@ -75,10 +74,7 @@ def calcPL(prcHist):
         if (totDVolume > 0):
             ret = value / totDVolume
 
-        prices.append(curPrices[ticker])
         values.append(value)
-        volumes.append(curPos[ticker])
-
 
         print("Day %d value: %.2lf todayPL: $%.2lf $-traded: %.0lf return: %.5lf" %
               (t, value, todayPL, totDVolume, ret))

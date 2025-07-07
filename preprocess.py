@@ -4,14 +4,54 @@ from ta.momentum import RSIIndicator, StochasticOscillator, ROCIndicator, Willia
 from ta.trend import MACD
 
 COMMISSION_RATE = 0.0005
-AHEAD = 50
-WINDOW_FEATURES = 50
+AHEAD = 40
+WINDOW_FEATURES = 40
 
 def loadDataSet():
     df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)
     df.index = np.arange(df.shape[0])
     df.rename(columns=lambda c: int(c), inplace=True)
     return df
+
+def getLinGrad(y: pd.Series, window: int):
+    length = y.shape[0]
+    all_grads = [None] * (window - 1)
+    for i in range(0, length - window + 1):
+        curY = y[i:(i + window)]
+        x = list(range(len(curY)))
+        m, b = np.polyfit(x, curY, 1)
+        all_grads.append(m)
+    return all_grads
+
+def extract_features3(stock_df: pd.DataFrame):
+    # X = features of the last few days
+    rsi = RSIIndicator(close=stock_df, window=10)
+    rsi_series = rsi.rsi()
+
+    rsi = RSIIndicator(close=stock_df, window=20)
+    rsi_series2 = rsi.rsi()
+
+    rsi = RSIIndicator(close=stock_df, window=30)
+    rsi_series3 = rsi.rsi()
+    
+    macd = MACD(close=stock_df, window_slow=20, window_fast=10, window_sign=5)
+    macd_signal = macd.macd_diff()
+
+    macd = MACD(close=stock_df, window_slow=12, window_fast=6, window_sign=3)
+    macd_signal2 = macd.macd_diff()
+
+    macd = MACD(close=stock_df, window_slow=30, window_fast=15, window_sign=9)
+    macd_signal3 = macd.macd_diff()
+
+    grad1 = getLinGrad(stock_df, window=5)
+    grad2 = getLinGrad(stock_df, window=10)
+    grad3 = getLinGrad(stock_df, window=20)
+
+    return rsi_series, rsi_series2, rsi_series3, \
+        macd_signal, macd_signal2, macd_signal3, \
+        grad1, grad2, grad3      
+        
+
 
 def extract_features2(stock_df: pd.DataFrame):
     # X = features of the last few days
@@ -78,6 +118,25 @@ def extract_features(stock_df: pd.DataFrame):
     williamR_vals = williamR.williams_r()
 
     return rsi_series, macd_signal, stoch_sign, roc_vals, williamR_vals
+
+def get_X_current3(stock_df: pd.DataFrame, extracted_features: tuple, today: int):
+    rsi_series, rsi_series2, rsi_series3, \
+        macd_signal, macd_signal2, macd_signal3, \
+        grad1, grad2, grad3  = extracted_features
+    current = {}
+    for j in range(1, WINDOW_FEATURES + 1):
+        prev = today - j
+        # current[f"price_{j}"] = stock_df.iloc[prev]
+        current[f"rsi_{j}"] = rsi_series[prev]
+        current[f"rsi2_{j}"] = rsi_series2[prev]
+        current[f"rsi3_{j}"] = rsi_series3[prev]
+        current[f"macd_{j}"] = macd_signal[prev]
+        current[f"macd2_{j}"] = macd_signal2[prev]
+        current[f"macd3_{j}"] = macd_signal3[prev]
+        current[f"grad1_{j}"] = grad1[prev]
+        current[f"grad2_{j}"] = grad2[prev]
+        current[f"grad3_{j}"] = grad3[prev]
+    return current
 
 def get_X_current2(stock_df: pd.DataFrame, extracted_features: tuple, today: int):
     rsi_series, rsi_series2, macd_signal, macd_signal2, macd_signal3, \
