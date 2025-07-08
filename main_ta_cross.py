@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from time import time
 from cross_preprocess import preprocessTA, getX, AHEAD, extract_all
+from preprocess import extract_features, extract_features2, extract_features3
 
 currentPos = np.zeros(50)
 
@@ -14,8 +15,7 @@ models = [RandomForestClassifier(n_estimators=150, max_depth=2, random_state=260
 # models = [GradientBoostingClassifier(n_estimators=100, max_depth=5, learning_rate=0.01,  random_state=2605) for i in range(50)]
 
 # Bad idea: Too fragile on different time series
-# good_stocks = list(range(50))
-good_stocks = [30]
+good_stocks = list(range(50))
 # 6, 9, 11, 22, 24, 46
 # 19, 20, 28, 31
 LABELS = [-1, 0, 1]
@@ -24,8 +24,8 @@ def getMyPosition(prices):
     global currentPos, entered, first
     start = time()
     curDay = len(prices[0])
-    # if curDay % AHEAD != 0:
-    #     return np.copy(currentPos)
+    if curDay % AHEAD != 0:
+        return np.copy(currentPos)
 
     df = pd.DataFrame(prices.T, columns=np.arange(50))
     limit = [0] * 50
@@ -33,7 +33,7 @@ def getMyPosition(prices):
         limit[i] = 10000 // df[i].values[-1]
 
     train_df = df.iloc[-300:]
-    extracted_features = extract_all(price_df=train_df)
+    extracted_features = extract_all(price_df=train_df, extract_features=extract_features3)
 
     for stock in good_stocks:
         if first or (curDay % (AHEAD * 2) == 0):

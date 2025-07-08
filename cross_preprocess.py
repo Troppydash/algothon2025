@@ -2,10 +2,11 @@ import pandas as pd
 import numpy as np
 from ta.momentum import RSIIndicator, StochasticOscillator, ROCIndicator, WilliamsRIndicator
 from ta.trend import MACD
+from preprocess import extract_features, extract_features2, extract_features3
 
 COMMISSION_RATE = 0.0005
-AHEAD = 15
-WINDOW_FEATURES = 15
+AHEAD = 40
+WINDOW_FEATURES = 40
 
 def loadDataSet():
     df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)
@@ -13,59 +14,30 @@ def loadDataSet():
     df.rename(columns=lambda c: int(c), inplace=True)
     return df
 
-def extract_features(stock_df: pd.DataFrame):
-    # X = features of the last few days
-    rsi = RSIIndicator(close=stock_df, window=10)
-    rsi_series = rsi.rsi()
-    
-    macd = MACD(close=stock_df, window_slow=20, window_fast=10, window_sign=5)
-    macd_signal = macd.macd_signal()
-
-    stoch_osc = StochasticOscillator(close=stock_df, high=stock_df, low=stock_df, window=12, smooth_window=3)
-    stoch_sign = stoch_osc.stoch_signal()
-
-    roc = ROCIndicator(close=stock_df, window=5)
-    roc_vals = roc.roc()
-
-    williamR = WilliamsRIndicator(high=stock_df, 
-                                  low=stock_df, 
-                                  close=stock_df, lbp=10)
-    williamR_vals = williamR.williams_r()
-
-    return rsi_series, macd_signal, stoch_sign, roc_vals, williamR_vals
-
-def extract_all(price_df: pd.DataFrame):
+def extract_all(price_df: pd.DataFrame, extract_features = extract_features):
     price_df.index = list(range(price_df.shape[0]))
-    rsi = []
-    macd = []
-    stoch = []
-    roc = []
-    williamR = []
+    concat = []
 
     for i in range(50):
-        rsi_series, macd_signal, stoch_sign, roc_vals, williamR_vals = extract_features(price_df[i])
-        rsi.append(rsi_series)
-        macd.append(macd_signal)
-        stoch.append(stoch_sign)
-        roc.append(roc_vals)
-        williamR.append(williamR_vals)
-    return rsi, macd, stoch, roc, williamR
+        extracted_features = extract_features(price_df[i])
+        for j in range(len(extracted_features)):
+            if len(concat) - 1 < j:
+                concat.append([])
+            concat[j].append(extracted_features[j])
+    
+    return tuple(concat)
 
 cached = {}
 def get_X_current(price_df: pd.DataFrame, extracted_features: tuple, today: int):
     if today in cached:
         return cached[today]
-    rsi_series, macd_signal, stoch_sign, roc_vals, williamR_vals = extracted_features
     current = {}
     for j in range(1, WINDOW_FEATURES + 1):
         prev = today - j
         # current[f"price_{j}"] = stock_df.iloc[prev]
         for i in range(50):
-            current[f"rsi_{i}_{j}"] = rsi_series[i][prev]
-            current[f"macd_{i}_{j}"] = macd_signal[i][prev]
-            current[f"stoch_{i}_{j}"] = stoch_sign[i][prev]
-            current[f"roc_{i}_{j}"] = roc_vals[i][prev]
-            current[f"williamR_{i}_{j}"] = williamR_vals[i][prev]
+            for k in range(len(extracted_features)):
+                current[f"{i}_{j}_{k}"] = extracted_features[k][i][prev]
     cached[today] = current
     return current
 
