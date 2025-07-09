@@ -17,7 +17,7 @@ models = [RandomForestClassifier(n_estimators=200, max_depth=5, random_state=260
 
 # Bad idea: Too fragile on different time series
 good_stocks = list(range(50))
-good_stocks = [0, 6, 10, 16, 19, 21, 27, 34, 36, 38, 42]
+# good_stocks = [0, 6, 10, 16, 19, 21, 27, 34, 36, 38, 42]
 # good_stocks = [6, 9, 11, 22, 24, 46]
 # 19, 20, 28, 31
 LABELS = [-1, 0, 1]
@@ -34,7 +34,7 @@ def getMyPosition(prices):
     for i in range(50):
         limit[i] = 10000 // df[i].values[-1]
 
-    train_df = df.iloc[-200:]
+    train_df = df.iloc[-300:]
 
     for stock in good_stocks:
         if first or (curDay % AHEAD == 0):

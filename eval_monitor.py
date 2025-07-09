@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-#from main_ta import getMyPosition
-from main_ta_cross import getMyPosition
+from main_ta import getMyPosition
+# from main_ta_cross import getMyPosition
 import matplotlib.pyplot as plt
 
 nInst = 0
@@ -21,7 +21,7 @@ pricesFile = "./prices.txt"
 prcAll = loadPrices(pricesFile)
 print("Loaded %d instruments for %d days" % (nInst, nt))
 
-start = 200
+start = 500
 
 values = []
 prices = []

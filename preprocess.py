@@ -4,8 +4,8 @@ from ta.momentum import RSIIndicator, StochasticOscillator, ROCIndicator, Willia
 from ta.trend import MACD
 
 COMMISSION_RATE = 0.0005
-AHEAD = 40
-WINDOW_FEATURES = 40
+AHEAD = 20
+WINDOW_FEATURES = 20
 
 def loadDataSet():
     df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)
@@ -24,6 +24,7 @@ def getLinGrad(y: pd.Series, window: int):
     return all_grads
 
 def extract_features3(stock_df: pd.DataFrame):
+    # print("Length of stock: ", stock_df.shape)
     # X = features of the last few days
     rsi = RSIIndicator(close=stock_df, window=5)
     rsi_series = rsi.rsi()
@@ -124,6 +125,7 @@ def get_X_current3(stock_df: pd.DataFrame, extracted_features: tuple, today: int
         macd_signal, macd_signal2, macd_signal3, \
         grad1, grad2, grad3  = extracted_features
     current = {}
+    # print(rsi_series)
     for j in range(1, WINDOW_FEATURES + 1):
         prev = today - j
         # current[f"price_{j}"] = stock_df.iloc[prev]
@@ -173,7 +175,7 @@ def get_X_current(stock_df: pd.DataFrame, extracted_features: tuple, today: int)
     return current
 
 def getX(price_df: pd.DataFrame, stock: int, extract_features=extract_features, get_X_current = get_X_current):
-    stock_df = price_df[stock][-50:]
+    stock_df = price_df[stock][-(WINDOW_FEATURES * 2):]
     stock_df.index = list(range(stock_df.shape[0]))
     days = stock_df.shape[0]
 
@@ -187,8 +189,10 @@ def getX(price_df: pd.DataFrame, stock: int, extract_features=extract_features, 
     X_df = pd.DataFrame(X)
     return X_df
 
-def preprocessTA(price_df: pd.DataFrame, stock: int, start=50, extract_features=extract_features, 
+def preprocessTA(price_df: pd.DataFrame, stock: int, start=WINDOW_FEATURES + 20, extract_features=extract_features, 
                  get_X_current = get_X_current):
+    # print("Price dim: ", price_df.shape)
+    # print("Stock: ", stock)
     stock_df = price_df[stock]
     stock_df.index = list(range(stock_df.shape[0]))
     days = stock_df.shape[0]
