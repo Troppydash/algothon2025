@@ -13,6 +13,18 @@ def loadDataSet():
     df.rename(columns=lambda c: int(c), inplace=True)
     return df
 
+def extract_features4(stock_df: pd.DataFrame):
+    roc = ROCIndicator(close=stock_df, window=10)
+    roc_vals = roc.roc()
+
+    roc = ROCIndicator(close=stock_df, window=1)
+    roc_vals3 = roc.roc()
+
+    roc = ROCIndicator(close=stock_df, window=5)
+    roc_vals4 = roc.roc()
+
+    return roc_vals, roc_vals3, roc_vals4
+
 def getLinGrad(y: pd.Series, window: int):
     length = y.shape[0]
     all_grads = [None] * (window - 1)

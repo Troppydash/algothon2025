@@ -5,8 +5,8 @@ from ta.trend import MACD
 from preprocess import extract_features, extract_features2, extract_features3
 
 COMMISSION_RATE = 0.0005
-AHEAD = 40
-WINDOW_FEATURES = 40
+AHEAD = 20
+WINDOW_FEATURES = 5
 
 def loadDataSet():
     df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)

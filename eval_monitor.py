@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from main_ta import getMyPosition
-# from main_ta_cross import getMyPosition
+# from main_ta import getMyPosition
+from main_ta_cross import getMyPosition
 import matplotlib.pyplot as plt
 
 nInst = 0

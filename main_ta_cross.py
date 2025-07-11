@@ -3,14 +3,14 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from time import time
 from cross_preprocess import preprocessTA, getX, AHEAD, extract_all
-from preprocess import extract_features, extract_features2, extract_features3
+from preprocess import extract_features, extract_features2, extract_features3, extract_features4
 
 currentPos = np.zeros(50)
 
 entered = [False] * 50
 
 first = True
-models = [RandomForestClassifier(n_estimators=150, max_depth=2, random_state=2605) for i in range(50)]
+models = [RandomForestClassifier(n_estimators=150, max_depth=5, random_state=2605) for i in range(50)]
 # Maybe try XGBoost ... This perform worse than 
 # models = [GradientBoostingClassifier(n_estimators=100, max_depth=5, learning_rate=0.01,  random_state=2605) for i in range(50)]
 
