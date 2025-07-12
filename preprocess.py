@@ -14,16 +14,17 @@ def loadDataSet():
     return df
 
 def extract_features4(stock_df: pd.DataFrame):
-    roc = ROCIndicator(close=stock_df, window=10)
-    roc_vals = roc.roc()
+    # roc = ROCIndicator(close=stock_df, window=10)
+    # roc_vals = roc.roc()
 
     roc = ROCIndicator(close=stock_df, window=1)
     roc_vals3 = roc.roc()
 
-    roc = ROCIndicator(close=stock_df, window=5)
-    roc_vals4 = roc.roc()
+    # roc = ROCIndicator(close=stock_df, window=5)
+    # roc_vals4 = roc.roc()
 
-    return roc_vals, roc_vals3, roc_vals4
+    # return (roc_vals, roc_vals3, roc_vals4)
+    return (roc_vals3,)
 
 def getLinGrad(y: pd.Series, window: int):
     length = y.shape[0]
@@ -187,7 +188,7 @@ def get_X_current(stock_df: pd.DataFrame, extracted_features: tuple, today: int)
     return current
 
 def getX(price_df: pd.DataFrame, stock: int, extract_features=extract_features, get_X_current = get_X_current):
-    stock_df = price_df[stock][-(WINDOW_FEATURES * 2):]
+    stock_df = price_df[stock][-(WINDOW_FEATURES * 2 + 50):]
     stock_df.index = list(range(stock_df.shape[0]))
     days = stock_df.shape[0]
 

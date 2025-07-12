@@ -6,7 +6,7 @@ from preprocess import extract_features, extract_features2, extract_features3
 
 COMMISSION_RATE = 0.0005
 AHEAD = 20
-WINDOW_FEATURES = 5
+WINDOW_FEATURES = 20
 
 def loadDataSet():
     df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)
@@ -73,6 +73,7 @@ def preprocessTA(price_df: pd.DataFrame, extracted_features: tuple, stock: int, 
         current = get_X_current(price_df, extracted_features, i)
         X.append(current)
         return_pct = (stock_df[i+AHEAD] - stock_df[i]) / stock_df[i]
+        # y.append(return_pct)
         if abs(return_pct) < COMMISSION_RATE:
             y.append(0)
         else:

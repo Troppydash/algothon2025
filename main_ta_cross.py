@@ -1,16 +1,19 @@
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LinearRegression
 from time import time
 from cross_preprocess import preprocessTA, getX, AHEAD, extract_all
-from preprocess import extract_features, extract_features2, extract_features3, extract_features4
+from preprocess import extract_features, extract_features2, extract_features3, extract_features4, COMMISSION_RATE
 
 currentPos = np.zeros(50)
 
 entered = [False] * 50
 
 first = True
-models = [RandomForestClassifier(n_estimators=150, max_depth=5, random_state=2605) for i in range(50)]
+models = [RandomForestClassifier(n_estimators=150, max_depth=10, random_state=2605) for i in range(50)]
+
+# models = [LinearRegression() for i in range(50)]
 # Maybe try XGBoost ... This perform worse than 
 # models = [GradientBoostingClassifier(n_estimators=100, max_depth=5, learning_rate=0.01,  random_state=2605) for i in range(50)]
 
@@ -33,23 +36,25 @@ def getMyPosition(prices):
         limit[i] = 10000 // df[i].values[-1]
 
     train_df = df.iloc[-300:]
-    extracted_features = extract_all(price_df=train_df, extract_features=extract_features3)
-
+    extracted_features = extract_all(price_df=train_df, extract_features=extract_features4)
+    # print(extracted_features[0])
     for stock in good_stocks:
-        if first or (curDay % (AHEAD * 2) == 0):
+        if first or (curDay % max(AHEAD * 2, 40) == 0):
             X_df, y_df = preprocessTA(train_df, extracted_features=extracted_features, stock=stock, start=50)
             
             X_train = X_df
             y_train = y_df
             models[stock].fit(X_train, y_train)
-        X_pred = getX(train_df, extracted_features=extracted_features, stock=i)
+        # print(models[0].classes_)
+        X_pred = getX(train_df, extracted_features=extracted_features, stock=stock)
         prob = models[stock].predict_proba(X_pred)[0]
         y_pred = LABELS[np.argmax(prob)]
         predict_prob = max(prob)
+        
         if curDay % AHEAD == 0:
-            if y_pred == 1:
+            if y_pred > COMMISSION_RATE:
                 currentPos[stock] = min(limit[stock]//2 * predict_prob, limit[stock])
-            elif y_pred == -1:
+            elif y_pred < -1 * COMMISSION_RATE:
                 currentPos[stock] = max(-limit[stock]//2 * predict_prob, -limit[stock])
         # else:
         #     if (y_pred == 1 and currentPos[stock] < 0) or \
