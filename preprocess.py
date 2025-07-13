@@ -1,11 +1,13 @@
 import pandas as pd
 import numpy as np
-from ta.momentum import RSIIndicator, StochasticOscillator, ROCIndicator, WilliamsRIndicator
+from ta.momentum import RSIIndicator, StochasticOscillator, ROCIndicator, \
+    WilliamsRIndicator
+from ta.volatility import BollingerBands
 from ta.trend import MACD
 
 COMMISSION_RATE = 0.0005
-AHEAD = 30
-WINDOW_FEATURES = 5
+AHEAD = 40
+WINDOW_FEATURES = 10
 
 def loadDataSet():
     df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)
@@ -68,9 +70,15 @@ def extract_features3(stock_df: pd.DataFrame):
     grad2 = getLinGrad(stock_df, window=10)
     grad3 = getLinGrad(stock_df, window=20)
 
+    bolling1 = BollingerBands(close=stock_df, window=10, window_dev=10)
+    width1 = bolling1.bollinger_wband()
+
+    bolling2 = BollingerBands(close=stock_df, window=20, window_dev=20)
+    width2 = bolling2.bollinger_wband()
+
     return rsi_series, rsi_series2, rsi_series3, \
         macd_signal, macd_signal2, macd_signal3, \
-        grad1, grad2, grad3      
+        grad1, grad2, grad3, width1, width2   
         
 
 
@@ -218,6 +226,52 @@ def getX(price_df: pd.DataFrame, stock: int, extract_features=extract_features, 
 
     X_df = pd.DataFrame(X)
     return X_df
+
+def preprocessTA2(price_df: pd.DataFrame, stock: int, start=WINDOW_FEATURES + 20, extract_features=extract_features, 
+                 get_X_current = get_X_current):
+    # print("Price dim: ", price_df.shape)
+    # print("Stock: ", stock)
+    stock_df = price_df[stock]
+    stock_df.index = list(range(stock_df.shape[0]))
+    days = stock_df.shape[0]
+
+    # X = features of the last few days
+    # Wait until the first full window of all indicator 
+    X = []
+    extracted_features = extract_features(stock_df=stock_df)
+    # y is buy or sell
+    y = []
+
+    # print(stock_df)
+    # print(rsi_series)
+    valid_days = range(start, days - AHEAD)
+    for i in valid_days:
+        current = get_X_current(stock_df, extracted_features, i)
+        X.append(current)
+        # return_pct = (stock_df[i+AHEAD] - stock_df[i]) / stock_df[i]
+        # if abs(return_pct) < COMMISSION_RATE:
+        #     y.append(0)
+        # else:
+        #     if return_pct > 0:
+        #         y.append(1)
+        #     else:
+        #         y.append(-1)
+        PnL = abs(stock_df[i+AHEAD] - stock_df[i])
+        isBuy = stock_df[i+AHEAD] > stock_df[i]
+        std = np.std(np.diff(stock_df[i:i+AHEAD+1], n=1))
+        score = PnL * (1 - COMMISSION_RATE) - 0.1 * std
+        if score < 0:
+            y.append(0)
+        else:
+            if isBuy:
+                y.append(1)
+            else:
+                y.append(-1)
+    X_df = pd.DataFrame(X)
+    y_df = pd.Series(y)
+    X_df.index = list(valid_days)
+    y_df.index = X_df.index
+    return X_df, y_df
 
 def preprocessTA(price_df: pd.DataFrame, stock: int, start=WINDOW_FEATURES + 20, extract_features=extract_features, 
                  get_X_current = get_X_current):

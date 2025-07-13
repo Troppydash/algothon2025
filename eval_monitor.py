@@ -22,7 +22,7 @@ pricesFile = "./prices.txt"
 prcAll = loadPrices(pricesFile)
 print("Loaded %d instruments for %d days" % (nInst, nt))
 
-start = 500
+start = 400
 
 values = []
 prices = []
@@ -47,6 +47,7 @@ def calcPL(prcHist):
         prcHistSoFar = prcHist[:, :t]
         newPosOrig = getMyPosition(prcHistSoFar)
         curPrices = prcHistSoFar[:, -1]
+        # print("Eval: ", curPrices)
         posLimits = np.array([int(x) for x in dlrPosLimit / curPrices])
         newPos = np.clip(newPosOrig, -posLimits, posLimits)
         deltaPos = newPos - curPos
