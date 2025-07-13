@@ -94,9 +94,6 @@ def getMyPositionHelper(prices):
             continue
 
         stopLoss(curPrice=train_df[stock].iloc[-1], stock=stock)
-        if curDay % AHEAD != 0:
-            continue
-        
         if first or (curDay % 60 == 0):
             # print(stock)
             X_df, y_df = preprocessTA(train_df, stock, extract_features=EXTRACT_FEATURES, 
@@ -107,6 +104,8 @@ def getMyPositionHelper(prices):
             # print(y_train)
             # print(X_train)
             models[stock].fit(X_train, y_train)
+        if curDay % AHEAD != 0:
+            continue
         X_pred = getX(train_df, stock, extract_features=EXTRACT_FEATURES, get_X_current=GET_X_CURRENT)
         prob = models[stock].predict_proba(X_pred)[0]
         y_pred = LABELS[np.argmax(prob)]
@@ -131,6 +130,10 @@ trial = 50
 def getMyPosition(prices):
     global trial
     # Blacklist by running first 50 timestamps without doing anything
+    # if trial == 50:
+    #     for j in range(50, 0, -1):
+    #         getMyPositionHelper(prices[:, :(-j)])
+
     getMyPositionHelper(prices)
     if trial > 0:
         trial -= 1
