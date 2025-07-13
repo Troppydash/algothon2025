@@ -37,6 +37,16 @@ def reconstruct(returns: pd.Series, start: float):
         price.append(price[-1] * (1 + price_ret))
     return np.array(price)
 
+def shrink(returns: pd.Series, start: float, stretch: int = 2):
+    price = [start]
+    cumu = 1
+    for i in range(len(returns)):
+        cumu *= (1 + returns.iloc[i])
+        if i % stretch == (stretch - 1):
+            price.append(price[-1] * cumu)
+            cumu = 1
+    return price
+
 def get_min(values: list, labels: list):
     mini = values[0]
     label = labels[0]
@@ -72,62 +82,59 @@ def wrapper_multi(pair_list: list):
 if __name__ == "__main__":
     data = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)
 
-    inputs = []
-    for i in range(50):
-        for j in range(i+1, 50):
-            seqA = data[i].pct_change().dropna().iloc[-100:]
-            seqB = data[j].pct_change().dropna().iloc[-100:]
-            inputs.append((seqA, seqB, i, j))
+    # inputs = []
+    # for i in range(50):
+    #     for j in range(i+1, 50):
+    #         seqA = data[i].pct_change().dropna().iloc[-100:]
+    #         seqB = data[j].pct_change().dropna().iloc[-100:]
+    #         inputs.append((seqA, seqB, i, j))
     
-    grouped_inputs = []
-    NUM_GROUP = 15
-    groups = math.ceil(len(inputs) / NUM_GROUP)
-    for i in range(groups):
-        grouped_inputs.append(inputs[i*NUM_GROUP:(i+1)*NUM_GROUP])
+    # grouped_inputs = []
+    # NUM_GROUP = 15
+    # groups = math.ceil(len(inputs) / NUM_GROUP)
+    # for i in range(groups):
+    #     grouped_inputs.append(inputs[i*NUM_GROUP:(i+1)*NUM_GROUP])
     
-    with Pool(NUM_GROUP) as p:
-        results = p.map(wrapper_multi, grouped_inputs)
+    # with Pool(NUM_GROUP) as p:
+    #     results = p.map(wrapper_multi, grouped_inputs)
     
     
-    dict_result = {}
-    for result in results:
-        for pair in result:
-            dict_result[(pair[1], pair[2])] = pair[0]
-    with open("result.json", "w") as fp:
-        json.dump(results, fp)
+    # dict_result = {}
+    # for result in results:
+    #     for pair in result:
+    #         dict_result[(pair[1], pair[2])] = pair[0]
+    # with open("result.json", "w") as fp:
+    #     json.dump(results, fp)
 
-    minis = [(100, 0)] * 50
-    for i in range(50):
-        for j in range(50):
-            if i == j:
-                continue
-            key = (min(i, j), max(i, j))
-            if key not in dict_result:
-                continue
-            if dict_result[key] < minis[i][0]:
-                minis[i] = (dict_result[key], j)
-    print(minis)
+    # minis = [(100, 0)] * 50
+    # for i in range(50):
+    #     for j in range(50):
+    #         if i == j:
+    #             continue
+    #         key = (min(i, j), max(i, j))
+    #         if key not in dict_result:
+    #             continue
+    #         if dict_result[key] < minis[i][0]:
+    #             minis[i] = (dict_result[key], j)
+    # print(minis)
 
-    # for j in range(50):
-    #     for stretch in range(1, 9):
-    #         seqA = data[0].pct_change().dropna().iloc[-100:]
-    #         seqB = data[j].pct_change().dropna().iloc[-100 * stretch::stretch]
+    i = 3
+    j = 5
+    stretch=1
+    seqA = data[i].pct_change().dropna().iloc[:800]
+    seqB = data[j].pct_change().dropna().iloc[647:]
 
-    #         stdA = np.std(data[0].pct_change().dropna().iloc[:-100])
-    #         stdB = np.std(data[j].pct_change().dropna().iloc[:-100])
+    mini, dtw, pathMatrix = dynamic_time_warping(seqA, seqB)
+    n = len(pathMatrix) - 1
+    m = len(pathMatrix[0]) - 1
+    path = [[0] * (m + 1) for _ in range(n + 1)]
 
-    #         seqA /= stdA
-    #         seqB /= stdB
-    #         mini, dtw, pathMatrix = dynamic_time_warping(seqA, seqB)
-    #         n = len(pathMatrix) - 1
-    #         m = len(pathMatrix[0]) - 1
-    #         path = [[0] * (n + 1) for _ in range(m + 1)]
-
-    #         back = (n, m)
-    #         while back != (0, 0):
-    #             path[back[0]][back[1]] = abs(seqA.iloc[back[0]-1] - seqB.iloc[back[1] - 1])
-    #             back = pathMatrix[back[0]][back[1]]
-    #         if mini < 50:
-    #             plt.matshow(path)
-    #             plt.title(f"{j}: {mini}")
-    #             plt.savefig(f"warp/{j}_{stretch}_warp.png")
+    back = (n, m)
+    while back != (0, 0):
+        print(back)
+        path[back[0]][back[1]] = abs(seqA.iloc[back[0]-1] - seqB.iloc[back[1] - 1])
+        back = pathMatrix[back[0]][back[1]]
+    print(mini)
+    plt.matshow(path)
+    plt.title(f"{j}: {mini}")
+    plt.savefig(f"warp/{j}_{i}_warp.png")

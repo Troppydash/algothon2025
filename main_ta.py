@@ -3,11 +3,12 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from time import time
 from preprocess import preprocessTA, getX, AHEAD, \
-    extract_features2, get_X_current2, extract_features3, get_X_current3
+    extract_features2, get_X_current2, extract_features3, get_X_current3, \
+    extract_features4, extract_features5, get_X_current_generic
 
 currentPos = np.zeros(50)
 EXTRACT_FEATURES = extract_features3
-GET_X_CURRENT = get_X_current3
+GET_X_CURRENT = get_X_current_generic
 entered = [False] * 50
 
 first = True
@@ -52,11 +53,9 @@ def getMyPosition(prices):
         y_pred = LABELS[np.argmax(prob)]
         predict_prob = max(prob)
         if y_pred == 1:
-            currentPos[stock] = min(limit[stock]//2 * predict_prob, limit[stock])
+            currentPos[stock] = min(limit[stock]//3 * predict_prob, limit[stock])
         elif y_pred == -1:
-            currentPos[stock] = max(-limit[stock]//2 * predict_prob, -limit[stock])
-        else:
-            currentPos[stock] = 0
+            currentPos[stock] = max(-limit[stock]//3 * predict_prob, -limit[stock])
     
     first = False
     end = time()

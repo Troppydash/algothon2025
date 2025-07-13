@@ -4,27 +4,14 @@ from ta.momentum import RSIIndicator, StochasticOscillator, ROCIndicator, Willia
 from ta.trend import MACD
 
 COMMISSION_RATE = 0.0005
-AHEAD = 20
-WINDOW_FEATURES = 20
+AHEAD = 30
+WINDOW_FEATURES = 5
 
 def loadDataSet():
     df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)
     df.index = np.arange(df.shape[0])
     df.rename(columns=lambda c: int(c), inplace=True)
     return df
-
-def extract_features4(stock_df: pd.DataFrame):
-    # roc = ROCIndicator(close=stock_df, window=10)
-    # roc_vals = roc.roc()
-
-    roc = ROCIndicator(close=stock_df, window=1)
-    roc_vals3 = roc.roc()
-
-    # roc = ROCIndicator(close=stock_df, window=5)
-    # roc_vals4 = roc.roc()
-
-    # return (roc_vals, roc_vals3, roc_vals4)
-    return (roc_vals3,)
 
 def getLinGrad(y: pd.Series, window: int):
     length = y.shape[0]
@@ -35,6 +22,26 @@ def getLinGrad(y: pd.Series, window: int):
         m, b = np.polyfit(x, curY, 1)
         all_grads.append(m)
     return all_grads
+
+def extract_features5(stock_df: pd.DataFrame):
+    grad1 = getLinGrad(stock_df, window=5)
+    grad2 = getLinGrad(stock_df, window=3)
+    grad3 = getLinGrad(stock_df, window=10)
+
+    return grad1, grad2, grad3
+
+def extract_features4(stock_df: pd.DataFrame):
+    roc = ROCIndicator(close=stock_df, window=10)
+    roc_vals = roc.roc()
+
+    roc = ROCIndicator(close=stock_df, window=1)
+    roc_vals3 = roc.roc()
+
+    roc = ROCIndicator(close=stock_df, window=5)
+    roc_vals4 = roc.roc()
+
+    return (roc_vals, roc_vals3, roc_vals4)
+    # return (roc_vals3,)
 
 def extract_features3(stock_df: pd.DataFrame):
     # print("Length of stock: ", stock_df.shape)
@@ -186,6 +193,16 @@ def get_X_current(stock_df: pd.DataFrame, extracted_features: tuple, today: int)
         current[f"roc_{j}"] = roc_vals[prev]
         current[f"williamR_{j}"] = williamR_vals[prev]
     return current
+
+def get_X_current_generic(stock_df: pd.DataFrame, extracted_features: tuple, today: int):
+    current = {}
+    for j in range(1, WINDOW_FEATURES + 1):
+        for k in range(len(extracted_features)):
+            prev = today - j
+            # current[f"price_{j}"] = stock_df.iloc[prev]
+            current[f"{j}_{k}"] = extracted_features[k][prev]
+    return current
+
 
 def getX(price_df: pd.DataFrame, stock: int, extract_features=extract_features, get_X_current = get_X_current):
     stock_df = price_df[stock][-(WINDOW_FEATURES * 2 + 50):]
