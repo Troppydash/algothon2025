@@ -15,6 +15,10 @@ GET_X_CURRENT = get_X_current_generic
 entered = [False] * 50
 
 POS_LIMIT = 10000
+FACTOR = 1
+
+def scaled_limit(limit: int):
+    return limit * 2/FACTOR
 
 first = True
 models = [RandomForestClassifier(n_estimators=150, max_depth=5, random_state=2605) for i in range(50)]
@@ -32,7 +36,7 @@ good_stocks = list(range(50))
 LABELS = [-1, 0, 1]
 
 startPrice = [0] * 50
-def stopLoss(curPrice: int, stock: int, limit: int = 150):
+def stopLoss(curPrice: int, stock: int, limit: int = scaled_limit(150)):
     # Remember to update startPrice for this
     if startPrice[stock] == 0:
         return
@@ -46,7 +50,7 @@ PnL = [0] * 50
 PnLMax = [0] * 50
 cashes = [0] * 50
 blacklist = [False] * 50
-countNegative = [0] * 50
+
 def PnLTracking(prices: pd.DataFrame):
     global currentPos, previousPos, cashes, PnL
     curPrices = prices.iloc[-2]
@@ -66,9 +70,9 @@ def PnLTracking(prices: pd.DataFrame):
         PnL[stock] = cashes[stock] + pvalue
         PnLMax[stock] = max(PnLMax[stock], PnL[stock])
 
-        if (PnLMax[stock] > 150 and PnL[stock] <= 100) \
-            or (PnLMax[stock] > 50 and PnL[stock] <= 0) \
-            or (PnL[stock] <= -150):
+        if (PnLMax[stock] > scaled_limit(150) and PnL[stock] <= scaled_limit(100)) \
+            or (PnLMax[stock] > scaled_limit(50) and PnL[stock] <= scaled_limit(0)) \
+            or (PnL[stock] <= scaled_limit(-150)):
             currentPos[stock] = 0
             blacklist[stock] = True
             cashes[stock] = 0
@@ -86,6 +90,7 @@ def getMyPositionHelper(prices):
         limit[i] = 10000 // df[i].values[-1]
 
     train_df = df.iloc[-400:]
+    # Track PnL for black-list
     PnLTracking(df)
     previousPos = np.copy(currentPos)
 
@@ -112,9 +117,9 @@ def getMyPositionHelper(prices):
         predict_prob = max(prob)
         predict_prob = 1
         if y_pred == 1:
-            currentPos[stock] = min(limit[stock]//2 * predict_prob, limit[stock])
+            currentPos[stock] = min(limit[stock]//FACTOR * predict_prob, limit[stock])
         elif y_pred == -1:
-            currentPos[stock] = max(-limit[stock]//2 * predict_prob, -limit[stock])
+            currentPos[stock] = max(-limit[stock]//FACTOR * predict_prob, -limit[stock])
         else:
             currentPos[stock] = 0
         
@@ -126,14 +131,10 @@ def getMyPositionHelper(prices):
     print(f"Take: {end - start}s")
     return np.copy(currentPos)
 
-trial = 50
+trial = 80
 def getMyPosition(prices):
-    global trial
+    global trial, PnL, PnLMax, cashes
     # Blacklist by running first 50 timestamps without doing anything
-    # if trial == 50:
-    #     for j in range(50, 0, -1):
-    #         getMyPositionHelper(prices[:, :(-j)])
-
     getMyPositionHelper(prices)
     if trial > 0:
         trial -= 1
