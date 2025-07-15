@@ -2,7 +2,7 @@
 
 import numpy as np
 import pandas as pd
-from round1.main import getMyPosition as getPosition
+from Team.main import getMyPosition as getPosition
 
 nInst = 0
 nt = 0
@@ -19,7 +19,7 @@ pricesFile="./prices.txt"
 prcAll = loadPrices(pricesFile)
 print ("Loaded %d instruments for %d days" % (nInst, nt))
 
-def calcPL(prcHist, startDay, endDay):
+def calcPL(prcHist, numTestDays):
     cash = 0
     curPos = np.zeros(nInst)
     totDVolume = 0
@@ -28,8 +28,8 @@ def calcPL(prcHist, startDay, endDay):
     value = 0
     todayPLL = []
     (_,nt) = prcHist.shape
-    # startDay = nt + 1 - numTestDays
-    for t in range(startDay, endDay+1):
+    startDay = nt + 1 - numTestDays
+    for t in range(startDay, nt+1):
         prcHistSoFar = prcHist[:,:t]
         curPrices = prcHistSoFar[:,-1]
         if (t < nt):
@@ -64,7 +64,7 @@ def calcPL(prcHist, startDay, endDay):
 
 
 
-(meanpl, ret, plstd, sharpe, dvol) = calcPL(prcAll, 500, 750)
+(meanpl, ret, plstd, sharpe, dvol) = calcPL(prcAll,500)
 score = meanpl - 0.1*plstd
 print ("=====")
 print ("mean(PL): %.1lf" % meanpl)

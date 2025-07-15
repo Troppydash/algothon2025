@@ -36,7 +36,7 @@ good_stocks = list(range(50))
 LABELS = [-1, 0, 1]
 
 startPrice = [0] * 50
-def stopLoss(curPrice: int, stock: int, limit: int = scaled_limit(150)):
+def stopLoss(curPrice: int, stock: int, limit: int = scaled_limit(100)):
     # Remember to update startPrice for this
     if startPrice[stock] == 0:
         return
@@ -70,9 +70,11 @@ def PnLTracking(prices: pd.DataFrame):
         PnL[stock] = cashes[stock] + pvalue
         PnLMax[stock] = max(PnLMax[stock], PnL[stock])
 
-        if (PnLMax[stock] > scaled_limit(150) and PnL[stock] <= scaled_limit(100)) \
+        if  (PnLMax[stock] > scaled_limit(150) and PnL[stock] <= scaled_limit(100)) \
             or (PnLMax[stock] > scaled_limit(50) and PnL[stock] <= scaled_limit(0)) \
-            or (PnL[stock] <= scaled_limit(-150)):
+            or (PnLMax[stock] > scaled_limit(250) and PnL[stock] <= scaled_limit(150) ) \
+            or (PnL[stock] <= scaled_limit(-150)) \
+            or (PnL[stock] >= scaled_limit(500)):
             currentPos[stock] = 0
             blacklist[stock] = True
             cashes[stock] = 0
