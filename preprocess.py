@@ -6,8 +6,8 @@ from ta.volatility import BollingerBands
 from ta.trend import MACD
 
 COMMISSION_RATE = 0.0005
-AHEAD = 40
-WINDOW_FEATURES = 10
+AHEAD = 250
+WINDOW_FEATURES = 50
 
 def loadDataSet():
     df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)
@@ -248,14 +248,6 @@ def preprocessTA2(price_df: pd.DataFrame, stock: int, start=WINDOW_FEATURES + 20
     for i in valid_days:
         current = get_X_current(stock_df, extracted_features, i)
         X.append(current)
-        # return_pct = (stock_df[i+AHEAD] - stock_df[i]) / stock_df[i]
-        # if abs(return_pct) < COMMISSION_RATE:
-        #     y.append(0)
-        # else:
-        #     if return_pct > 0:
-        #         y.append(1)
-        #     else:
-        #         y.append(-1)
         PnL = abs(stock_df[i+AHEAD] - stock_df[i])
         isBuy = stock_df[i+AHEAD] > stock_df[i]
         std = np.std(np.diff(stock_df[i:i+AHEAD+1], n=1))
@@ -295,13 +287,13 @@ def preprocessTA(price_df: pd.DataFrame, stock: int, start=WINDOW_FEATURES + 20,
         current = get_X_current(stock_df, extracted_features, i)
         X.append(current)
         return_pct = (stock_df[i+AHEAD] - stock_df[i]) / stock_df[i]
-        if abs(return_pct) < COMMISSION_RATE:
-            y.append(0)
+        # if abs(return_pct) < COMMISSION_RATE:
+        #     y.append(0)
+        # else:
+        if return_pct > 0:
+            y.append(1)
         else:
-            if return_pct > 0:
-                y.append(1)
-            else:
-                y.append(-1)
+            y.append(-1)
     X_df = pd.DataFrame(X)
     y_df = pd.Series(y)
     X_df.index = list(valid_days)

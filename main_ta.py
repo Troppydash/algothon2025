@@ -8,6 +8,7 @@ from preprocess import preprocessTA, preprocessTA2, \
     extract_features4, extract_features5, get_X_current_generic
 from preprocess import COMMISSION_RATE
 
+NAME = "main_ta"
 currentPos = np.zeros(50)
 previousPos = np.zeros(50)
 EXTRACT_FEATURES = extract_features3
@@ -93,15 +94,15 @@ def getMyPositionHelper(prices):
 
     train_df = df.iloc[-400:]
     # Track PnL for black-list
-    PnLTracking(df)
+    # PnLTracking(df)
     previousPos = np.copy(currentPos)
 
     for stock in good_stocks:
         if blacklist[stock]:
             continue
 
-        stopLoss(curPrice=train_df[stock].iloc[-1], stock=stock)
-        if first or (curDay % 60 == 0):
+        # stopLoss(curPrice=train_df[stock].iloc[-1], stock=stock)
+        if first or (curDay % AHEAD == 0):
             # print(stock)
             X_df, y_df = preprocessTA(train_df, stock, extract_features=EXTRACT_FEATURES, 
                                       get_X_current=GET_X_CURRENT, start=100)
@@ -138,8 +139,8 @@ def getMyPosition(prices):
     global trial, PnL, PnLMax, cashes
     # Blacklist by running first 50 timestamps without doing anything
     getMyPositionHelper(prices)
-    if trial > 0:
-        trial -= 1
-        return np.zeros(50)
+    # if trial > 0:
+    #     trial -= 1
+    #     return np.zeros(50)
     return np.copy(currentPos)
     

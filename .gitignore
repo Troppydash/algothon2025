@@ -3,9 +3,11 @@ __pycache__
 .vscode
 *.ipynb
 *.png
+*.txt
 !pair.ipynb
 !single.ipynb
 !lstm.ipynb
 !rnn.ipynb
 !quack.ipynb
 !leadlag.ipynb
+!leadlag_linear.ipynb

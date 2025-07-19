@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
 
-# from main_ta import getMyPosition
+# from main_ta import getMyPosition, NAME
 # from main_ta_cross import getMyPosition
 # from main_rnn import getMyPosition
-from main_quack2 import getMyPosition
+from main_quack import getMyPosition, NAME
 import matplotlib.pyplot as plt
 
 nInst = 0
@@ -45,7 +45,7 @@ def calcPL(prcHist):
     value = 0
     todayPLL = []
     (_, nt) = prcHist.shape
-    for t in range(start, start + 500):
+    for t in range(start, min(start + 500, 1000)):
         prcHistSoFar = prcHist[:, :t]
         newPosOrig = getMyPosition(prcHistSoFar)
         curPrices = prcHistSoFar[:, -1]
@@ -112,7 +112,7 @@ for i,t1 in enumerate(tickers):
     ax[i+1,0].plot(pnls[key], label=key)
     ax[i+1,1].plot(positions[key], label=key)
 
-fig.savefig('out.png')
+fig.savefig(f'out_{NAME}.png')
 
 plt.figure()
 plt.plot(values)
