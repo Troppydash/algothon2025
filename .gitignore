@@ -13,6 +13,7 @@ __pycache__
 !leadlag_linear.ipynb
 !doc.ipynb
 !other.ipynb
+!corr_comb_frenzy.ipynb
 *.docx
 *.xlsx
 *.dump
