@@ -82,6 +82,7 @@ def PnLTracking(prices: pd.DataFrame):
 
 
 chosen = [0, 5, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 24, 25, 27, 29, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 42, 44, 45, 46, 47, 48, 49]
+chosen = [i for i in range(50)]
 good_stocks = [0]
 def getMyPositionHelper(prices):
     global currentPos, entered, first, previousPos
@@ -97,7 +98,7 @@ def getMyPositionHelper(prices):
 
     # Track PnL for black-list
     # PnLTracking(df)
-    previousPos = np.copy(currentPos)
+    # previousPos = np.copy(currentPos)
 
     for stock in good_stocks:
         if blacklist[stock]:
@@ -122,14 +123,17 @@ def getMyPositionHelper(prices):
         predict_prob = max(prob)
         predict_prob = 1
         if y_pred == 1:
-            currentPos[stock] = min(limit[stock]//FACTOR * predict_prob, limit[stock])
+            for i in range(50):
+                currentPos[i] = min(limit[i]//FACTOR * predict_prob, limit[i])
         elif y_pred == -1:
-            currentPos[stock] = max(-limit[stock]//FACTOR * predict_prob, -limit[stock])
+            for i in range(50):
+                currentPos[i] = max(-limit[i]//FACTOR * predict_prob, -limit[i])
         else:
-            currentPos[stock] = 0
+            for i in range(50):
+                currentPos[i] = 0
         
         # Update startPrice for stopLoss
-        startPrice[stock] = train_df[stock].iloc[-1]
+        # startPrice[stock] = train_df[stock].iloc[-1]
     
     first = False
     end = time()

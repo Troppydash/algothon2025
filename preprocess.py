@@ -6,8 +6,8 @@ from ta.volatility import BollingerBands
 from ta.trend import MACD
 
 COMMISSION_RATE = 0.0005
-AHEAD = 250
-WINDOW_FEATURES = 50
+AHEAD = 50
+WINDOW_FEATURES = 10
 
 def loadDataSet():
     df = pd.read_csv("./prices.txt", sep="\\s+", header=None, index_col=None)

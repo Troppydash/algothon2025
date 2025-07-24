@@ -5,7 +5,7 @@ import pandas as pd
 # from main_ta_cross import getMyPosition
 # from main_rnn import getMyPosition
 from ta_group import getMyPosition, NAME
-from pre_final_main2 import getMyPosition, NAME
+# from pre_final_main2 import getMyPosition, NAME
 import matplotlib.pyplot as plt
 
 nInst = 0
