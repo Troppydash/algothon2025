@@ -11,3 +11,8 @@ __pycache__
 !quack.ipynb
 !leadlag.ipynb
 !leadlag_linear.ipynb
+!doc.ipynb
+!other.ipynb
+*.docx
+*.xlsx
+*.dump

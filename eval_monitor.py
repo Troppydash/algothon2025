@@ -4,7 +4,7 @@ import pandas as pd
 # from main_ta import getMyPosition, NAME
 # from main_ta_cross import getMyPosition
 # from main_rnn import getMyPosition
-from main_quack import getMyPosition, NAME
+from pre_final_main import getMyPosition, NAME
 import matplotlib.pyplot as plt
 
 nInst = 0
@@ -24,7 +24,7 @@ pricesFile = "./prices.txt"
 prcAll = loadPrices(pricesFile)
 print("Loaded %d instruments for %d days" % (nInst, nt))
 
-start = 500
+start = 1000
 
 values = []
 prices = []
@@ -45,7 +45,7 @@ def calcPL(prcHist):
     value = 0
     todayPLL = []
     (_, nt) = prcHist.shape
-    for t in range(start, min(start + 500, 1000)):
+    for t in range(start, min(start + 500, 1500)):
         prcHistSoFar = prcHist[:, :t]
         newPosOrig = getMyPosition(prcHistSoFar)
         curPrices = prcHistSoFar[:, -1]
