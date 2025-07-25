@@ -4,8 +4,9 @@ import pandas as pd
 # from main_ta import getMyPosition, NAME
 # from main_ta_cross import getMyPosition
 # from main_rnn import getMyPosition
-from ta_group import getMyPosition, NAME
+# from ta_group import getMyPosition, NAME
 # from pre_final_main2 import getMyPosition, NAME
+from weight_comb_main import getMyPosition, NAME
 import matplotlib.pyplot as plt
 
 nInst = 0
@@ -25,7 +26,7 @@ pricesFile = "./prices.txt"
 prcAll = loadPrices(pricesFile)
 print("Loaded %d instruments for %d days" % (nInst, nt))
 
-start = 750
+start = 1000
 
 values = []
 prices = []
