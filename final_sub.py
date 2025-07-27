@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 
-NAME = "final sub dynamic diff evol original"
+NAME = "final sub dynamic diff evol new"
 currentPos = np.zeros(50)
 positions = []
 
@@ -66,19 +66,49 @@ positions = []
 # totDvolume: 22187843
 # Score: 19.22
 
-# def compute_weights(df, init):
-#     from scipy.optimize import differential_evolution
+# start 750
+# mean(PL): 46.5
+# return: 0.00096
+# StdDev(PL): 179.09
+# annSharpe(PL): 4.11
+# totDvolume: 24301803
+# Score: 28.62
 
-#     def test(weights):
-#         return -abs((df * weights).sum(1).diff().autocorr()) - np.std(np.abs(weights)) / 5
+# start 1000
+# mean(PL): 43.1
+# return: 0.00087
+# StdDev(PL): 174.78
+# annSharpe(PL): 3.90
+# totDvolume: 24805307
+# Score: 25.64
 
-#     def cb(x, f):
-#         print(test(x))
+# New optim 3: -abs((df * weights).sum(1).replace(0, 0.00001).pct_change().autocorr()) - 1/200 * np.sum(np.abs(weights) / max(np.abs(weights)))
+# start 1000
+# mean(PL): 51.4
+# return: 0.00055
+# StdDev(PL): 322.48
+# annSharpe(PL): 2.52
+# totDvolume: 46355554
+# Score: 19.13
 
-#     if init is None:
-#         init = np.ones(50)
+# New optim 4: 0.9 + -abs((df * weights).sum(1).replace(0, 0.00001).pct_change().autocorr()) - entropy(np.abs(weights) / np.sum(np.abs(weights))) / np.log(len(weights))
 
-#     return differential_evolution(test, bounds=[(0,1)] * 50, callback=cb, x0=init, maxiter=1000).x
+# start 750
+# mean(PL): 54.7
+# return: 0.00095
+# StdDev(PL): 202.00
+# annSharpe(PL): 4.28
+# totDvolume: 28674315
+# Score: 34.48
+
+# start 1000
+# mean(PL): 46.9
+# return: 0.00080
+# StdDev(PL): 199.90
+# annSharpe(PL): 3.71
+# totDvolume: 29385936
+# Score: 26.90
+
 
 def compute_weights(df, init):
     from scipy.optimize import differential_evolution
@@ -87,7 +117,9 @@ def compute_weights(df, init):
     def test(weights):
         # Do the opposite of L1, encourage dense position vec (cause it works better than L1, since weak stocks still contribute
         # more to mean than std)
-        return -abs((df * weights).sum(1).replace(0, 0.00001).pct_change().autocorr()) - 1/5 * entropy(np.abs(weights) / np.sum(np.abs(weights))) / np.log(len(weights))
+        if abs(np.sum(np.abs(weights))) < 0.000001:
+            return 2
+        return 0.9 + -abs((df * weights).sum(1).replace(0, 0.00001).pct_change().autocorr()) - entropy(np.abs(weights) / np.sum(np.abs(weights))) / np.log(len(weights))
 
     def cb(x, f):
         print(test(x))
