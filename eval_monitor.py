@@ -1,12 +1,15 @@
 import numpy as np
 import pandas as pd
+import time
 
 # from main_ta import getMyPosition, NAME
 # from main_ta_cross import getMyPosition
 # from main_rnn import getMyPosition
 # from ta_group import getMyPosition, NAME
 # from pre_final_main2 import getMyPosition, NAME
-from weight_comb_main import getMyPosition, NAME
+# from weight_comb_main import getMyPosition, NAME
+
+from final_sub import getMyPosition, NAME
 import matplotlib.pyplot as plt
 
 nInst = 0
@@ -26,7 +29,7 @@ pricesFile = "./prices.txt"
 prcAll = loadPrices(pricesFile)
 print("Loaded %d instruments for %d days" % (nInst, nt))
 
-start = 1000
+start = 500
 
 values = []
 prices = []
@@ -47,6 +50,7 @@ def calcPL(prcHist):
     value = 0
     todayPLL = []
     (_, nt) = prcHist.shape
+    startTime = time.time()
     for t in range(start, min(start + 500, 1500)):
         prcHistSoFar = prcHist[:, :t]
         newPosOrig = getMyPosition(prcHistSoFar)
@@ -90,6 +94,8 @@ def calcPL(prcHist):
     annSharpe = 0.0
     if (plstd > 0):
         annSharpe = np.sqrt(250) * plmu / plstd
+    endTime = time.time()
+    print("Takes", endTime - startTime, "s")
     return (plmu, ret, plstd, annSharpe, totDVolume)
 
 
