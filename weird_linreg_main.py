@@ -11,7 +11,7 @@ positions = []
 model = None
 
 cached = {}
-NAME="weird linreg"
+
 
 def train_rf(df):
     xs = []
@@ -29,15 +29,16 @@ def train_rf(df):
 
             x, y = [
                 (df).sum(1).pct_change().iloc[i - 1],
-                # (df / df.iloc[0]).sum(1).pct_change().iloc[i - 1],
+                (df / df.iloc[0]).sum(1).pct_change().iloc[i - 1],
+                ((df - mprices)/stds2).sum(1).pct_change().iloc[i-1],
                 (df / prices).sum(1).pct_change().iloc[i - 1],
                 (df / mprices).sum(1).pct_change().iloc[i - 1],
                 (df / stds).sum(1).pct_change().iloc[i - 1],
                 (df / stds / prices).sum(1).pct_change().iloc[i - 1],
-                # (df / stds / df.iloc[0]).sum(1).pct_change().iloc[i - 1],
+                (df / stds / df.iloc[0]).sum(1).pct_change().iloc[i - 1],
                 (df / stds2).sum(1).pct_change().iloc[i - 1],
                 (df / stds2 / prices).sum(1).pct_change().iloc[i - 1],
-                # (df / stds2 / df.iloc[0]).sum(1).pct_change().iloc[i - 1],
+                (df / stds2 / df.iloc[0]).sum(1).pct_change().iloc[i - 1],
             ], (df / true_prices).sum(1).pct_change().iloc[i]
             xs.append(x)
             ys.append(y)
@@ -69,15 +70,16 @@ def getMyPosition(prices):
 
     xs = [
         (df).sum(1).pct_change().iloc[-1],
-        # (df / df.iloc[0]).sum(1).pct_change().iloc[-1],
+        (df / df.iloc[0]).sum(1).pct_change().iloc[-1],
+        ((df - mprices)/stds2).sum(1).pct_change().iloc[-1],
         (df / prices).sum(1).pct_change().iloc[-1],
         (df / mprices).sum(1).pct_change().iloc[-1],
         (df / stds).sum(1).pct_change().iloc[-1],
         (df / stds / prices).sum(1).pct_change().iloc[-1],
-        # (df / stds / df.iloc[0]).sum(1).pct_change().iloc[-1],
+        (df / stds / df.iloc[0]).sum(1).pct_change().iloc[-1],
         (df / stds2).sum(1).pct_change().iloc[-1],
         (df / stds2 / prices).sum(1).pct_change().iloc[-1],
-        # (df / stds2 / df.iloc[0]).sum(1).pct_change().iloc[-1],
+        (df / stds2 / df.iloc[0]).sum(1).pct_change().iloc[-1],
     ]
     esp_return = model.predict([xs])[0]
     data = (df / df.iloc[-1, :]).sum(1).pct_change().dropna()
