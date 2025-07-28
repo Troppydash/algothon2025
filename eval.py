@@ -2,7 +2,8 @@
 
 import numpy as np
 import pandas as pd
-from Team.main import getMyPosition as getPosition
+from final.main import getMyPosition as getPosition
+import time
 
 nInst = 0
 nt = 0
@@ -63,8 +64,8 @@ def calcPL(prcHist, numTestDays):
     return (plmu, ret, plstd, annSharpe, totDVolume)
 
 
-
-(meanpl, ret, plstd, sharpe, dvol) = calcPL(prcAll,500)
+start = time.time()
+(meanpl, ret, plstd, sharpe, dvol) = calcPL(prcAll,1000)
 score = meanpl - 0.1*plstd
 print ("=====")
 print ("mean(PL): %.1lf" % meanpl)
@@ -73,3 +74,5 @@ print ("StdDev(PL): %.2lf" % plstd)
 print ("annSharpe(PL): %.2lf " % sharpe)
 print ("totDvolume: %.0lf " % dvol)
 print ("Score: %.2lf" % score)
+end = time.time()
+print("Takes:", end - start, "s")
