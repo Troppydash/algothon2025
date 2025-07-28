@@ -9,7 +9,7 @@ import time
 # from pre_final_main2 import getMyPosition, NAME
 # from weight_comb_main import getMyPosition, NAME
 
-from final_sub import getMyPosition, NAME
+from weight_2_main import getMyPosition, NAME
 import matplotlib.pyplot as plt
 
 nInst = 0
