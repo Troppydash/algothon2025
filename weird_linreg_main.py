@@ -12,8 +12,8 @@ model = None
 
 cached = {}
 
-
-def train_rf(df):
+NAME = "weird linreg"
+def train_rf(df, record=False):
     xs = []
     ys = []
     for i in range(3, df.shape[0]):
@@ -30,7 +30,6 @@ def train_rf(df):
             x, y = [
                 (df).sum(1).pct_change().iloc[i - 1],
                 (df / df.iloc[0]).sum(1).pct_change().iloc[i - 1],
-                ((df - mprices)/stds2).sum(1).pct_change().iloc[i-1],
                 (df / prices).sum(1).pct_change().iloc[i - 1],
                 (df / mprices).sum(1).pct_change().iloc[i - 1],
                 (df / stds).sum(1).pct_change().iloc[i - 1],
@@ -44,6 +43,16 @@ def train_rf(df):
             ys.append(y)
 
             cached[i] = (x, y)
+
+    if record:
+        total = {}
+        xs = np.array(xs)
+        for i in range(xs.shape[1]):
+            total[("x_" + str(i))] = xs[:, i]
+        total["y"] = ys
+        record_df = pd.DataFrame(total)
+        print(record_df.shape)
+        record_df.to_csv("record_data_weird_linreg.csv")
 
     model = LinearRegression()
     model.fit(xs, ys)
@@ -62,6 +71,11 @@ def getMyPosition(prices):
     if model is None or df.shape[0] % 5 == 0:
         model = train_rf(df)
 
+    print(df.shape[0])
+    if df.shape[0] == 999:
+        train_rf(df, record=True)
+
+
     # make dataset
     stds = df.pct_change().std()
     prices = df.iloc[-1]
@@ -71,7 +85,6 @@ def getMyPosition(prices):
     xs = [
         (df).sum(1).pct_change().iloc[-1],
         (df / df.iloc[0]).sum(1).pct_change().iloc[-1],
-        ((df - mprices)/stds2).sum(1).pct_change().iloc[-1],
         (df / prices).sum(1).pct_change().iloc[-1],
         (df / mprices).sum(1).pct_change().iloc[-1],
         (df / stds).sum(1).pct_change().iloc[-1],

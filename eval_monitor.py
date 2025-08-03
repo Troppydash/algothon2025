@@ -6,14 +6,16 @@ import time
 # from main_ta_cross import getMyPosition
 # from main_rnn import getMyPosition
 # from ta_group import getMyPosition, NAME
-# from pre_final_main2 import getMyPosition, NAME
+# from final_backward_elim import getMyPosition, NAME
 # from weight_comb_main import getMyPosition, NAME
 
-# from final_sub import getMyPosition, NAME
+# from final_sub_diffevol import getMyPosition, NAME
 # from weight_2_main import getMyPosition, NAME
 
-from weird_linreg_main import getMyPosition, NAME
 
+# from weird_linreg_main import getMyPosition, NAME
+from final.main import getMyPosition
+NAME = 'submission final'
 import matplotlib.pyplot as plt
 
 nInst = 0
@@ -33,7 +35,11 @@ pricesFile = "./prices.txt"
 prcAll = loadPrices(pricesFile)
 print("Loaded %d instruments for %d days" % (nInst, nt))
 
-start = 1000
+day0 = 0
+start = 250
+
+print(prcAll.shape)
+prcAll = prcAll[:, day0:]
 
 values = []
 prices = []
@@ -106,6 +112,7 @@ def calcPL(prcHist):
 (meanpl, ret, plstd, sharpe, dvol) = calcPL(prcAll)
 score = meanpl - 0.1*plstd
 print("=====")
+print(f'past data start {day0}')
 print(f'start {start}')
 print("mean(PL): %.1lf" % meanpl)
 print("return: %.5lf" % ret)
